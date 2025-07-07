@@ -3,7 +3,12 @@
     "name": "SmartChoice AI MVP",
     "repo_owner": "bubbadog",
     "repo_name": "smartchoice-ai",
-    "version": "1.0.0"
+    "version": "1.1.0"
+  },
+  "sync_settings": {
+    "preserve_checkboxes": true,
+    "update_mode": "content_only",
+    "backup_before_update": true
   },
   "milestones": [
     {
@@ -13,7 +18,7 @@
     },
     {
       "title": "Week 2: AI Features & Launch",
-      "description": "AI integration, testing, deployment, and beta launch", 
+      "description": "AI integration, testing, deployment, and beta launch",
       "due_days": 14
     }
   ],
@@ -33,5 +38,75 @@
     {"name": "mcp", "color": "4ecdc4", "description": "MCP server development"},
     {"name": "integration", "color": "45b7d1", "description": "System integration"},
     {"name": "infrastructure", "color": "96ceb4", "description": "Infrastructure setup"}
+  ],
+  "issues": [
+    {
+      "number": "001",
+      "title": "Initialize Monorepo Structure",
+      "priority": "P0 (Blocker)",
+      "estimate": "2 hours",
+      "labels": ["P0", "setup", "infrastructure"],
+      "milestone": "Week 1: Foundation & Infrastructure",
+      "description": "Set up the complete monorepo structure with workspaces and build tools.",
+      "tasks": [
+        "Create root package.json with workspaces configuration",
+        "Set up Turbo for monorepo management",
+        "Create folder structure (apps/, packages/, tools/)",
+        "Configure TypeScript root config with path mapping",
+        "Set up ESLint and Prettier configurations",
+        "Create .gitignore and environment files"
+      ],
+      "acceptance_criteria": [
+        "`pnpm install` runs successfully from root",
+        "All workspaces are properly linked",
+        "TypeScript compilation works across packages",
+        "Linting and formatting rules are enforced"
+      ],
+      "dependencies": "None"
+    },
+    {
+      "number": "002",
+      "title": "Environment Configuration",
+      "priority": "P0 (Blocker)",
+      "estimate": "1 hour",
+      "labels": ["P0", "setup", "infrastructure"],
+      "milestone": "Week 1: Foundation & Infrastructure",
+      "description": "Configure environment variables and secrets management.",
+      "tasks": [
+        "Create .env.example with all required variables",
+        "Set up environment validation with Zod",
+        "Configure different environments (dev, staging, prod)",
+        "Document API key requirements and setup process"
+      ],
+      "acceptance_criteria": [
+        "Environment variables are validated on startup",
+        "Clear documentation for obtaining API keys",
+        "Secure handling of secrets in all environments"
+      ],
+      "dependencies": "#001"
+    },
+    {
+      "number": "003",
+      "title": "Database Setup & Schema",
+      "priority": "P0 (Blocker)",
+      "estimate": "3 hours",
+      "labels": ["P0", "setup", "infrastructure"],
+      "milestone": "Week 1: Foundation & Infrastructure",
+      "description": "Set up PostgreSQL database with Drizzle ORM and initial schema.",
+      "tasks": [
+        "Install and configure Drizzle ORM",
+        "Create database schema for products, users, searches",
+        "Set up migration system",
+        "Create database connection utility",
+        "Add database seeding for development"
+      ],
+      "acceptance_criteria": [
+        "Database schema matches PRD requirements",
+        "Migrations run successfully",
+        "Connection pooling is configured",
+        "Development seed data is available"
+      ],
+      "dependencies": "#002"
+    }
   ]
 }
