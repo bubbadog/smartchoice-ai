@@ -1,0 +1,37 @@
+{
+  "project": {
+    "name": "SmartChoice AI MVP",
+    "repo_owner": "bubbadog",
+    "repo_name": "smartchoice-ai",
+    "version": "1.0.0"
+  },
+  "milestones": [
+    {
+      "title": "Week 1: Foundation & Infrastructure",
+      "description": "Core setup, backend APIs, and basic frontend",
+      "due_days": 7
+    },
+    {
+      "title": "Week 2: AI Features & Launch",
+      "description": "AI integration, testing, deployment, and beta launch", 
+      "due_days": 14
+    }
+  ],
+  "labels": [
+    {"name": "P0", "color": "d73a4a", "description": "Critical/Blocker priority"},
+    {"name": "P1", "color": "fbca04", "description": "High priority"},
+    {"name": "P2", "color": "0075ca", "description": "Medium priority"},
+    {"name": "setup", "color": "7057ff", "description": "Initial setup tasks"},
+    {"name": "backend", "color": "008672", "description": "Backend development"},
+    {"name": "frontend", "color": "e99695", "description": "Frontend development"},
+    {"name": "mobile", "color": "f9d0c4", "description": "Mobile-specific features"},
+    {"name": "ai", "color": "d4c5f9", "description": "AI/ML integration"},
+    {"name": "testing", "color": "c2e0c6", "description": "Quality assurance"},
+    {"name": "deployment", "color": "bfd4f2", "description": "DevOps and deployment"},
+    {"name": "documentation", "color": "fef2c0", "description": "Documentation tasks"},
+    {"name": "api", "color": "ff6b6b", "description": "API integration"},
+    {"name": "mcp", "color": "4ecdc4", "description": "MCP server development"},
+    {"name": "integration", "color": "45b7d1", "description": "System integration"},
+    {"name": "infrastructure", "color": "96ceb4", "description": "Infrastructure setup"}
+  ]
+}
