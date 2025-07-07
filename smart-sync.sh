@@ -216,10 +216,432 @@ sync_all_issues() {
 - Proper HTTP status codes" \
     "#006, #004"
 
-    # Continue with remaining issues...
-    # [I'll include the rest in the actual script]
+    # Issue 009
+    sync_single_issue "009" "User Preferences API" "P1" "3 hours" "P1,backend,api" \
+    "API endpoints for managing user preferences and search history." \
+    "- [ ] GET /api/users/preferences - Get user preferences
+- [ ] PUT /api/users/preferences - Update preferences
+- [ ] GET /api/users/history - Get search history
+- [ ] POST /api/users/interactions - Track user interactions
+- [ ] Add preference validation and defaults" \
+    "- User preferences persist correctly
+- Search history is properly tracked
+- Privacy controls for data retention
+- Preferences affect recommendations" \
+    "#007, #008"
+
+    # Issue 010
+    sync_single_issue "010" "MCP Server Base Framework" "P0 (Critical)" "4 hours" "P0,mcp,ai,infrastructure" \
+    "Create the foundational MCP server framework and lifecycle management." \
+    "- [ ] Implement abstract MCPServer base class
+- [ ] Create server lifecycle management (start/stop/health)
+- [ ] Add event emission for server status changes
+- [ ] Implement graceful shutdown handling
+- [ ] Create server registry and management system" \
+    "- Base MCP server class is fully functional
+- Servers can be started/stopped independently
+- Health checks work for all servers
+- Graceful shutdown prevents data loss
+- Server status is properly tracked" \
+    "#004"
+
+    # Issue 011
+    sync_single_issue "011" "Product Search MCP Server" "P0 (Critical)" "6 hours" "P0,mcp,ai" \
+    "Implement the core product search MCP server with AI integration." \
+    "- [ ] Create ProductSearchServer class
+- [ ] Integrate OpenAI GPT-4 for query parsing
+- [ ] Implement natural language to structured query conversion
+- [ ] Add product deduplication logic
+- [ ] Create search result ranking algorithm
+- [ ] Add caching for repeated searches" \
+    "- Natural language queries are properly parsed
+- Search results are relevant and ranked
+- Duplicate products are filtered out
+- Response time under 3 seconds
+- Caching improves performance" \
+    "#010"
+
+    # Issue 012
+    sync_single_issue "012" "Amazon Product API Integration" "P0 (Critical)" "5 hours" "P0,api,integration" \
+    "Integrate Amazon Product Advertising API for product data." \
+    "- [ ] Set up Amazon Product Advertising API client
+- [ ] Implement product search functionality
+- [ ] Add product detail retrieval
+- [ ] Create price and availability tracking
+- [ ] Handle API rate limits and errors
+- [ ] Map Amazon data to internal product schema" \
+    "- Amazon API integration works reliably
+- Product data is properly normalized
+- Rate limits are respected
+- Error handling for API failures
+- Affiliate links are properly generated" \
+    "#011"
+
+    # Issue 013
+    sync_single_issue "013" "Best Buy API Integration" "P0 (Critical)" "4 hours" "P0,api,integration" \
+    "Integrate Best Buy API for additional product coverage." \
+    "- [ ] Set up Best Buy API client
+- [ ] Implement product search and details
+- [ ] Add inventory and pricing data
+- [ ] Create store availability checking
+- [ ] Handle API errors and fallbacks
+- [ ] Map Best Buy data to internal schema" \
+    "- Best Buy API integration works correctly
+- Store availability is accurate
+- Price data is up-to-date
+- Proper error handling and fallbacks
+- Data mapping is consistent" \
+    "#012"
+
+    # Issue 014
+    sync_single_issue "014" "Review Analysis MCP Server" "P1" "5 hours" "P1,mcp,ai" \
+    "Create MCP server for AI-powered review analysis and summarization." \
+    "- [ ] Create ReviewAnalysisServer class
+- [ ] Implement web scraping for Amazon reviews
+- [ ] Add OpenAI integration for review summarization
+- [ ] Create pros/cons extraction algorithm
+- [ ] Implement sentiment analysis
+- [ ] Add review authenticity scoring" \
+    "- Reviews are properly scraped and parsed
+- AI summaries are accurate and helpful
+- Pros/cons are clearly identified
+- Sentiment analysis is reliable
+- Authenticity scores help filter fake reviews" \
+    "#010, #011"
+
+    # Issue 015
+    sync_single_issue "015" "Price Intelligence MCP Server" "P1" "4 hours" "P1,mcp,ai" \
+    "Implement price tracking and deal scoring functionality." \
+    "- [ ] Create PriceIntelligenceServer class
+- [ ] Implement price history tracking
+- [ ] Add deal score calculation algorithm
+- [ ] Create price prediction models
+- [ ] Implement price drop alerts
+- [ ] Add competitor price comparison" \
+    "- Price history is accurately tracked
+- Deal scores reflect actual value
+- Price predictions are reasonable
+- Alerts work for price drops
+- Competitor comparison is fair" \
+    "#010, #012, #013"
+
+    # Issue 016
+    sync_single_issue "016" "Next.js App Setup with Mobile-First Design" "P0 (Critical)" "3 hours" "P0,frontend,mobile,setup" \
+    "Set up Next.js application with mobile-first responsive design system." \
+    "- [ ] Initialize Next.js 14 with App Router
+- [ ] Configure Tailwind CSS with mobile-first breakpoints
+- [ ] Set up responsive design tokens and utilities
+- [ ] Create base layout components
+- [ ] Configure PWA capabilities
+- [ ] Set up font optimization and loading" \
+    "- App builds and runs without errors
+- Responsive design system is consistent
+- PWA manifest and service worker configured
+- Performance scores 90+ on mobile
+- Typography and spacing scales properly" \
+    "#004"
+
+    # Issue 017
+    sync_single_issue "017" "Responsive Component Library" "P0 (Critical)" "6 hours" "P0,frontend,mobile" \
+    "Create reusable UI components optimized for mobile and desktop." \
+    "- [ ] Button component with touch-friendly sizing
+- [ ] Input and form components with mobile optimization
+- [ ] Card and list components for product display
+- [ ] Modal and drawer components for mobile
+- [ ] Loading states and skeleton components
+- [ ] Toast notification system" \
+    "- All components work on mobile and desktop
+- Touch targets meet accessibility guidelines (44px min)
+- Components are properly typed with TypeScript
+- Storybook documentation (optional)
+- Consistent design system implementation" \
+    "#016"
+
+    # Issue 018
+    sync_single_issue "018" "Product Search Interface" "P0 (Critical)" "5 hours" "P0,frontend,mobile" \
+    "Create the main product search interface with mobile optimization." \
+    "- [ ] Natural language search input with autocomplete
+- [ ] Search filters with mobile-friendly design
+- [ ] Search suggestions and recent searches
+- [ ] Voice search integration (optional)
+- [ ] Search history and saved searches
+- [ ] Empty state and error handling" \
+    "- Search input works on all devices
+- Filters are easily accessible on mobile
+- Voice search works in supported browsers
+- Search suggestions improve user experience
+- Error states are user-friendly" \
+    "#017, #008"
+
+    # Issue 019
+    sync_single_issue "019" "Product Recommendation Display" "P0 (Critical)" "6 hours" "P0,frontend,mobile" \
+    "Create responsive product recommendation cards and list views." \
+    "- [ ] Product card component with all key information
+- [ ] Responsive grid layout for recommendations
+- [ ] Swipe gestures for mobile product comparison
+- [ ] Confidence score visualization
+- [ ] Deal score and pricing display
+- [ ] Quick action buttons (save, compare, buy)" \
+    "- Product cards display all essential information
+- Swipe gestures work smoothly on mobile
+- Confidence and deal scores are clear
+- Quick actions are easily accessible
+- Performance with large product lists" \
+    "#017, #008"
+
+    # Issue 020
+    sync_single_issue "020" "Product Comparison Interface" "P1" "5 hours" "P1,frontend,mobile" \
+    "Create side-by-side product comparison with mobile optimization." \
+    "- [ ] Responsive comparison table/cards
+- [ ] Feature-by-feature comparison
+- [ ] Price comparison across retailers
+- [ ] Pros/cons comparison display
+- [ ] Mobile-optimized swipe navigation
+- [ ] Add/remove products from comparison" \
+    "- Comparison works well on mobile and desktop
+- Feature comparison is clear and helpful
+- Price comparison is accurate and up-to-date
+- Mobile navigation is intuitive
+- Users can easily modify comparison" \
+    "#019, #014"
+
+    # Issue 021
+    sync_single_issue "021" "User Dashboard & Preferences" "P1" "4 hours" "P1,frontend,mobile" \
+    "Create user dashboard for preferences and search history." \
+    "- [ ] User preferences form with mobile design
+- [ ] Search history with filtering and search
+- [ ] Saved products and price alerts
+- [ ] Account settings and privacy controls
+- [ ] Mobile-friendly navigation and layout" \
+    "- Dashboard is fully responsive
+- Preferences save and apply correctly
+- Search history is searchable and filterable
+- Price alerts are clearly displayed
+- Privacy controls are comprehensive" \
+    "#017, #009"
+
+    # Issue 022
+    sync_single_issue "022" "PWA Implementation" "P1" "3 hours" "P1,frontend,mobile" \
+    "Implement Progressive Web App features for mobile app-like experience." \
+    "- [ ] Configure PWA manifest and icons
+- [ ] Implement service worker for caching
+- [ ] Add offline functionality for saved products
+- [ ] Create \"Add to Home Screen\" prompt
+- [ ] Implement push notifications for price alerts
+- [ ] Add app-like navigation and gestures" \
+    "- App can be installed on mobile devices
+- Works offline with saved content
+- Push notifications work correctly
+- App feels native on mobile
+- Lighthouse PWA score 90+" \
+    "#016, #021"
+
+    # Issue 023
+    sync_single_issue "023" "Frontend-Backend API Integration" "P0 (Critical)" "4 hours" "P0,integration,frontend" \
+    "Connect frontend components to backend API endpoints." \
+    "- [ ] Set up API client with error handling
+- [ ] Implement search API integration
+- [ ] Add user authentication flow
+- [ ] Create data fetching hooks for React
+- [ ] Implement caching with React Query
+- [ ] Add loading states and error boundaries" \
+    "- All API calls work correctly
+- Error handling provides user feedback
+- Loading states improve user experience
+- Caching reduces unnecessary requests
+- Authentication flow is seamless" \
+    "#018, #019, #008"
+
+    # Issue 024
+    sync_single_issue "024" "Real-time Price Updates" "P2" "3 hours" "P2,integration,frontend" \
+    "Implement real-time price updates and notifications." \
+    "- [ ] WebSocket connection for price updates
+- [ ] Real-time notification system
+- [ ] Price change animations and indicators
+- [ ] Background price monitoring
+- [ ] Alert management interface" \
+    "- Price updates appear in real-time
+- Notifications are timely and relevant
+- UI updates smoothly without jarring changes
+- Background monitoring doesn't impact performance
+- Users can manage their alerts" \
+    "#015, #022"
+
+    # Issue 025
+    sync_single_issue "025" "Backend API Testing" "P1" "4 hours" "P1,testing,backend" \
+    "Create comprehensive test suite for backend APIs." \
+    "- [ ] Set up Jest testing framework
+- [ ] Create unit tests for all API endpoints
+- [ ] Add integration tests for MCP servers
+- [ ] Implement database testing with test fixtures
+- [ ] Add API contract testing
+- [ ] Create performance benchmarks" \
+    "- All API endpoints have test coverage
+- Tests run in CI/CD pipeline
+- Database tests use isolated test data
+- Performance tests catch regressions
+- Test coverage above 80%" \
+    "#008, #011, #014, #015"
+
+    # Issue 026
+    sync_single_issue "026" "Frontend Component Testing" "P1" "3 hours" "P1,testing,frontend" \
+    "Create test suite for React components and user interactions." \
+    "- [ ] Set up React Testing Library
+- [ ] Create unit tests for all components
+- [ ] Add integration tests for user flows
+- [ ] Implement visual regression testing
+- [ ] Add accessibility testing with jest-axe
+- [ ] Create mobile-specific interaction tests" \
+    "- All components have test coverage
+- User flows are tested end-to-end
+- Accessibility standards are enforced
+- Mobile interactions are tested
+- Tests catch UI regressions" \
+    "#017, #018, #019"
+
+    # Issue 027
+    sync_single_issue "027" "Mobile Device Testing" "P1" "2 hours" "P1,testing,mobile" \
+    "Test application across different mobile devices and browsers." \
+    "- [ ] Test on iOS Safari and Chrome
+- [ ] Test on Android Chrome and Samsung Browser
+- [ ] Verify touch interactions and gestures
+- [ ] Test PWA installation and functionality
+- [ ] Check performance on older devices
+- [ ] Verify responsive breakpoints" \
+    "- App works on all major mobile browsers
+- Touch interactions feel natural
+- PWA installs and works correctly
+- Performance is acceptable on older devices
+- Design works at all screen sizes" \
+    "#022, #019"
+
+    # Issue 028
+    sync_single_issue "028" "CI/CD Pipeline Setup" "P1" "3 hours" "P1,deployment,infrastructure" \
+    "Set up automated build, test, and deployment pipeline." \
+    "- [ ] Configure GitHub Actions workflow
+- [ ] Set up automated testing on PR
+- [ ] Create staging and production environments
+- [ ] Add automated security scanning
+- [ ] Configure environment variable management
+- [ ] Set up deployment notifications" \
+    "- Code changes trigger automated tests
+- Staging deploys work automatically
+- Production deploys require approval
+- Security scans catch vulnerabilities
+- Team gets deployment notifications" \
+    "#025, #026"
+
+    # Issue 029
+    sync_single_issue "029" "Production Deployment" "P1" "4 hours" "P1,deployment,infrastructure" \
+    "Deploy application to production with monitoring and scaling." \
+    "- [ ] Deploy frontend to Vercel with CDN
+- [ ] Deploy backend to Railway with auto-scaling
+- [ ] Set up PostgreSQL database with backups
+- [ ] Configure domain and SSL certificates
+- [ ] Add error monitoring with Sentry
+- [ ] Set up analytics and performance monitoring" \
+    "- Application is accessible at custom domain
+- SSL certificates are properly configured
+- Database backups run automatically
+- Error monitoring catches issues
+- Performance monitoring tracks metrics" \
+    "#028"
+
+    # Issue 030
+    sync_single_issue "030" "Environment Monitoring" "P2" "2 hours" "P2,deployment,infrastructure" \
+    "Set up comprehensive monitoring and alerting for production." \
+    "- [ ] Configure uptime monitoring
+- [ ] Set up performance alerting
+- [ ] Add database performance monitoring
+- [ ] Create custom dashboard for key metrics
+- [ ] Set up log aggregation and searching
+- [ ] Configure alert notifications" \
+    "- Downtime is detected and reported quickly
+- Performance regressions trigger alerts
+- Database issues are monitored
+- Key metrics are easily visible
+- Logs are searchable and useful" \
+    "#029"
+
+    # Issue 031
+    sync_single_issue "031" "API Documentation" "P2" "2 hours" "P2,documentation" \
+    "Create comprehensive API documentation for all endpoints." \
+    "- [ ] Generate OpenAPI/Swagger documentation
+- [ ] Add example requests and responses
+- [ ] Document authentication requirements
+- [ ] Create integration guides
+- [ ] Add rate limiting documentation" \
+    "- All endpoints are documented
+- Examples work correctly
+- Authentication is clearly explained
+- Integration guides are helpful
+- Documentation is up-to-date" \
+    "#008, #009"
+
+    # Issue 032
+    sync_single_issue "032" "User Documentation" "P2" "2 hours" "P2,documentation" \
+    "Create user guides and help documentation." \
+    "- [ ] Create getting started guide
+- [ ] Document mobile app installation
+- [ ] Add feature tutorials and tips
+- [ ] Create FAQ section
+- [ ] Add troubleshooting guide" \
+    "- New users can get started easily
+- Mobile installation is clearly explained
+- Features are well documented
+- Common issues are addressed
+- Help is easily accessible" \
+    "#022"
+
+    # Issue 033
+    sync_single_issue "033" "Performance Optimization" "P2" "3 hours" "P2,frontend,backend" \
+    "Optimize application performance for mobile and desktop." \
+    "- [ ] Optimize image loading and compression
+- [ ] Implement code splitting and lazy loading
+- [ ] Optimize API response caching
+- [ ] Minimize bundle sizes
+- [ ] Optimize database queries
+- [ ] Add performance monitoring" \
+    "- Mobile performance scores 90+ on Lighthouse
+- Page load times under 2 seconds
+- Bundle sizes are minimized
+- Database queries are optimized
+- Performance regressions are prevented" \
+    "#023, #029"
+
+    # Issue 034
+    sync_single_issue "034" "Security Audit" "P1" "2 hours" "P1,backend,frontend" \
+    "Conduct security review and implement necessary fixes." \
+    "- [ ] Review authentication and authorization
+- [ ] Audit API endpoints for security issues
+- [ ] Check for common vulnerabilities (OWASP)
+- [ ] Review data handling and privacy
+- [ ] Implement security headers and CSP
+- [ ] Add input validation and sanitization" \
+    "- No critical security vulnerabilities
+- Authentication is secure
+- Data handling follows best practices
+- Security headers are properly configured
+- Input validation prevents attacks" \
+    "#007, #008"
+
+    # Issue 035
+    sync_single_issue "035" "Beta Launch Preparation" "P0 (Critical)" "2 hours" "P0,documentation" \
+    "Prepare for beta launch with initial users." \
+    "- [ ] Create beta user onboarding flow
+- [ ] Set up user feedback collection
+- [ ] Prepare launch announcement
+- [ ] Create beta testing guidelines
+- [ ] Set up user support channels
+- [ ] Prepare usage analytics tracking" \
+    "- Beta users can easily get started
+- Feedback collection is working
+- Support channels are ready
+- Analytics track key metrics
+- Launch materials are prepared" \
+    "#032, #029"
     
-    echo -e "${GREEN}✅ All issues synced!${NC}"
+    echo -e "${GREEN}✅ All 35 issues synced!${NC}"
 }
 
 # Function to sync a single issue
@@ -256,7 +678,7 @@ $acceptance
 *Auto-synced on $(date)*"
 
     local existing_issue=$(check_issue_exists "$full_title")
-    local issue_labels=$(echo $labels | tr ',' ' ')
+    local issue_labels_array=($(echo $labels | tr ',' ' '))
     
     if [[ -n "$existing_issue" ]]; then
         if [[ "$current_hash" != "$stored_hash" ]]; then
@@ -268,10 +690,15 @@ $acceptance
         fi
     else
         echo -e "${GREEN}📝 Creating new issue #$number: $title${NC}"
+        # Build the gh command with multiple --label arguments
+        local label_args=""
+        for label in "${issue_labels_array[@]}"; do
+            label_args="$label_args --label $label"
+        done
         gh issue create --repo $REPO_OWNER/$REPO_NAME \
             --title "$full_title" \
             --body "$body" \
-            --label "$issue_labels" >/dev/null 2>&1 || echo "Failed to create #$number"
+            $label_args 2>&1 || echo "Failed to create #$number"
         update_sync_state "$number" "$current_hash" "created"
     fi
 }
