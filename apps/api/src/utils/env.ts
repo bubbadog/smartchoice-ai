@@ -5,8 +5,14 @@ const envSchema = z.object({
   PORT: z.coerce.number().positive().default(3000),
   FRONTEND_URL: z.string().url().optional(),
   DATABASE_URL: z.string().optional(),
-  JWT_SECRET: z.string().min(32).optional(),
+  SUPABASE_URL: z.string().url().optional(),
+  SUPABASE_ANON_KEY: z.string().optional(),
+  SUPABASE_SERVICE_ROLE_KEY: z.string().optional(),
+  JWT_SECRET: z.string().optional(),
   OPENAI_API_KEY: z.string().optional(),
+  PINECONE_API_KEY: z.string().optional(),
+  REDIS_URL: z.string().optional(),
+  JINA_API_KEY: z.string().optional(),
 })
 
 export type Env = z.infer<typeof envSchema>

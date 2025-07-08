@@ -1,15 +1,15 @@
-import express from 'express'
 import cors from 'cors'
-import helmet from 'helmet'
 import dotenv from 'dotenv'
+import express from 'express'
+import helmet from 'helmet'
 
 import './types/express'
 
-import { healthRouter } from './routes/health'
-import { searchRouter } from './routes/search'
-import { productsRouter } from './routes/products'
 import { errorHandler } from './middleware/errorHandler'
 import { requestLogger } from './middleware/requestLogger'
+import { healthRouter } from './routes/health'
+import { productsRouter } from './routes/products'
+import { searchRouter } from './routes/search'
 import { validateEnv } from './utils/env'
 
 // Load environment variables

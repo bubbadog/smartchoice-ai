@@ -1,0 +1,22 @@
+{
+  "mcpServers": {
+    "smartchoice-product-search": {
+      "command": "pnpm",
+      "args": ["run", "mcp:product-search"],
+      "cwd": "/Users/jkarbowski/Documents/Education/Agent_bootcamp/Capstone/smartchoice-ai/apps/api",
+      "env": {
+        "NODE_ENV": "development"
+      },
+      "description": "SmartChoice AI Product Search MCP Server"
+    },
+    "smartchoice-web-scraper": {
+      "command": "pnpm",
+      "args": ["run", "mcp:web-scraper"],
+      "cwd": "/Users/jkarbowski/Documents/Education/Agent_bootcamp/Capstone/smartchoice-ai/apps/api",
+      "env": {
+        "NODE_ENV": "development"
+      },
+      "description": "SmartChoice AI Web Scraper MCP Server with Jina.ai"
+    }
+  }
+}

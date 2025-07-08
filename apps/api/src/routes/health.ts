@@ -1,5 +1,5 @@
-import { Router } from 'express'
 import type { HealthCheckResponse } from '@smartchoice-ai/shared-types'
+import { Router } from 'express'
 
 export const healthRouter = Router()
 

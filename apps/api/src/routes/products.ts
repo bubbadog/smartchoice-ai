@@ -1,6 +1,8 @@
 import { Router } from 'express'
-import { SearchService } from '../services/searchService'
+import { z } from 'zod'
+
 import { AppError } from '../middleware/errorHandler'
+import { SearchService } from '../services/searchService'
 
 const productsRouter = Router()
 const searchService = new SearchService()
@@ -9,6 +11,10 @@ const searchService = new SearchService()
 productsRouter.get('/:id', async (req, res, next) => {
   try {
     const { id } = req.params
+    
+    if (!id || typeof id !== 'string') {
+      throw new AppError('Product ID is required', 400)
+    }
     
     const product = await searchService.getProduct(id)
     
@@ -32,21 +38,28 @@ productsRouter.get('/:id/similar', async (req, res, next) => {
     const { id } = req.params
     const { limit = '5' } = req.query
     
+    if (!id || typeof id !== 'string') {
+      throw new AppError('Product ID is required', 400)
+    }
+    
+    const limitNum = parseInt(limit as string, 10)
+    if (isNaN(limitNum) || limitNum < 1 || limitNum > 50) {
+      throw new AppError('Limit must be between 1 and 50', 400)
+    }
+    
     const product = await searchService.getProduct(id)
     if (!product) {
       throw new AppError('Product not found', 404)
     }
     
-    const similarProducts = await searchService.getSimilarProducts(
-      id, 
-      parseInt(limit as string, 10)
-    )
+    const similarProducts = await searchService.getSimilarProducts(id, limitNum)
     
     res.json({
       success: true,
       data: {
-        items: similarProducts,
-        total: similarProducts.length,
+        productId: id,
+        similarProducts,
+        count: similarProducts.length,
       },
       timestamp: new Date().toISOString(),
     })

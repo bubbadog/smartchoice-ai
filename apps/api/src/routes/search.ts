@@ -1,7 +1,8 @@
-import { Router } from 'express'
 import { SearchRequestSchema, createValidator } from '@smartchoice-ai/shared-types'
-import { SearchService } from '../services/searchService'
+import { Router } from 'express'
+
 import { AppError } from '../middleware/errorHandler'
+import { SearchService } from '../services/searchService'
 
 const searchRouter = Router()
 const searchService = new SearchService()
@@ -42,7 +43,7 @@ searchRouter.get('/', async (req, res, next) => {
         page: parseInt(page as string, 10),
         limit: parseInt(limit as string, 10),
       },
-      sortBy: sort as any,
+      sortBy: sort as 'relevance' | 'price_low' | 'price_high' | 'rating' | 'newest',
     }
     
     const results = await searchService.searchProducts(searchRequest)

@@ -10,15 +10,22 @@
     "lint": "eslint . --ext .ts",
     "typecheck": "tsc --noEmit",
     "test": "jest",
-    "clean": "rm -rf dist node_modules"
+    "clean": "rm -rf dist node_modules",
+    "mcp:product-search": "tsx src/mcp-servers/product-search/index.ts",
+    "mcp:web-scraper": "tsx src/mcp-servers/web-scraper/index.ts",
+    "mcp:build": "tsc --project tsconfig.mcp.json"
   },
   "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.15.0",
+    "@pinecone-database/pinecone": "^6.1.1",
     "@smartchoice-ai/shared-types": "workspace:*",
     "@smartchoice-ai/utils": "workspace:*",
+    "@supabase/supabase-js": "^2.50.3",
     "cors": "^2.8.5",
-    "dotenv": "^16.4.5",
+    "dotenv": "^16.6.1",
     "express": "^4.19.2",
     "helmet": "^7.1.0",
+    "openai": "^5.8.2",
     "zod": "^3.23.8"
   },
   "devDependencies": {
