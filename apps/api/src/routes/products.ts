@@ -69,43 +69,75 @@ productsRouter.get('/:id/similar', async (req, res, next) => {
 })
 
 // POST /api/v1/products/compare - Compare multiple products
+const compareRequestSchema = z.object({
+  productIds: z.array(z.string()).min(2, 'At least 2 products are required for comparison').max(10, 'Maximum 10 products can be compared'),
+})
+
 productsRouter.post('/compare', async (req, res, next) => {
   try {
-    const { productIds } = req.body
-    
-    if (!Array.isArray(productIds) || productIds.length < 2) {
-      throw new AppError('At least 2 product IDs are required for comparison', 400)
+    const validationResult = compareRequestSchema.safeParse(req.body)
+    if (!validationResult.success) {
+      throw new AppError('Invalid compare request: ' + validationResult.error.errors[0].message, 400)
     }
     
-    if (productIds.length > 5) {
-      throw new AppError('Cannot compare more than 5 products at once', 400)
+    const { productIds } = validationResult.data
+    
+    const products = await searchService.getProductsByIds(productIds)
+    
+    if (products.length === 0) {
+      throw new AppError('No products found for the provided IDs', 404)
     }
     
-    const products = await Promise.all(
-      productIds.map(id => searchService.getProduct(id))
-    )
-    
-    const validProducts = products.filter(p => p !== null)
-    
-    if (validProducts.length < 2) {
+    if (products.length < 2) {
       throw new AppError('At least 2 valid products are required for comparison', 400)
+    }
+    
+    // Create detailed comparison data structure
+    const comparison = {
+      products: products.map(product => ({
+        id: product.id,
+        title: product.title,
+        brand: product.brand,
+        price: product.price,
+        rating: product.rating,
+        retailer: product.retailer,
+        category: product.category,
+        image: product.image,
+        confidence: product.confidence,
+        dealScore: product.dealScore,
+        pros: product.pros,
+        cons: product.cons,
+        url: product.url,
+      })),
+      summary: {
+        priceRange: {
+          min: Math.min(...products.map(p => p.price)),
+          max: Math.max(...products.map(p => p.price)),
+          average: products.reduce((sum, p) => sum + p.price, 0) / products.length,
+        },
+        ratingRange: {
+          min: Math.min(...products.map(p => p.rating || 0)),
+          max: Math.max(...products.map(p => p.rating || 0)),
+          average: products.reduce((sum, p) => sum + (p.rating || 0), 0) / products.length,
+        },
+        categories: [...new Set(products.map(p => p.category))],
+        brands: [...new Set(products.map(p => p.brand))],
+        retailers: [...new Set(products.map(p => p.retailer))],
+        bestValue: products.reduce((best, current) => 
+          (current.dealScore || 0) > (best.dealScore || 0) ? current : best
+        ),
+        highestRated: products.reduce((best, current) => 
+          (current.rating || 0) > (best.rating || 0) ? current : best
+        ),
+        cheapest: products.reduce((cheapest, current) => 
+          current.price < cheapest.price ? current : cheapest
+        ),
+      },
     }
     
     res.json({
       success: true,
-      data: {
-        products: validProducts,
-        comparison: {
-          // Add basic comparison logic
-          priceRange: {
-            min: Math.min(...validProducts.map(p => p!.price)),
-            max: Math.max(...validProducts.map(p => p!.price)),
-          },
-          averageRating: validProducts.reduce((sum, p) => sum + (p!.rating || 0), 0) / validProducts.length,
-          brands: [...new Set(validProducts.map(p => p!.brand))],
-          categories: [...new Set(validProducts.map(p => p!.category))],
-        },
-      },
+      data: comparison,
       timestamp: new Date().toISOString(),
     })
   } catch (error) {

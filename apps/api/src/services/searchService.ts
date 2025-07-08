@@ -1,6 +1,7 @@
 import type { SearchRequest, SearchResponse, EnhancedProduct } from '@smartchoice-ai/shared-types'
 
 import { searchMockProducts, mockProducts } from '../data/mockProducts'
+
 import { VectorSearchService } from './vectorSearchService'
 
 export class SearchService {
@@ -11,9 +12,10 @@ export class SearchService {
   }
 
   async searchProducts(searchRequest: SearchRequest): Promise<SearchResponse> {
-    const { query, filters, pagination = { page: 1, limit: 20 }, sortBy = 'relevance' } = searchRequest
+    const { query: _query, filters: _filters, pagination = { page: 1, limit: 20 }, sortBy = 'relevance' } = searchRequest
     
-    console.log(`🔍 Searching for: "${query}"`)
+    // TODO: Add proper logging service
+    // console.log(`🔍 Searching for: "${query}"`)
     
     try {
       // Use vector search for semantic search

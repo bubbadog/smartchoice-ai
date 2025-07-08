@@ -1,6 +1,8 @@
+import { config } from 'dotenv'
+config()
+
 import cors from 'cors'
-import dotenv from 'dotenv'
-import express from 'express'
+import express, { json, urlencoded } from 'express'
 import helmet from 'helmet'
 
 import './types/express'
@@ -12,44 +14,36 @@ import { productsRouter } from './routes/products'
 import { searchRouter } from './routes/search'
 import { validateEnv } from './utils/env'
 
-// Load environment variables
-dotenv.config()
-
-// Validate environment
 const env = validateEnv()
 
 const app = express()
-const port = env.PORT
 
 // Security middleware
 app.use(helmet())
 
 // CORS configuration
 app.use(cors({
-  origin: env.FRONTEND_URL || 'http://localhost:3001',
+  origin: env.FRONTEND_URL,
   credentials: true,
 }))
 
 // Body parsing middleware
-app.use(express.json({ limit: '10mb' }))
-app.use(express.urlencoded({ extended: true }))
+app.use(json())
+app.use(urlencoded({ extended: true }))
 
 // Request logging
 app.use(requestLogger)
 
-// Health check route
-app.use('/health', healthRouter)
+// API routes with versioning
+const apiV1 = express.Router()
 
-// API routes
-app.use('/api/v1', (req, _res, next) => {
-  // API versioning middleware
-  req.apiVersion = 'v1'
-  next()
-})
+// Mount route handlers
+apiV1.use('/health', healthRouter)
+apiV1.use('/search', searchRouter)
+apiV1.use('/products', productsRouter)
 
-// API endpoints
-app.use('/api/v1/search', searchRouter)
-app.use('/api/v1/products', productsRouter)
+// API versioning
+app.use('/api/v1', apiV1)
 
 // 404 handler
 app.use('*', (req, res) => {
@@ -61,25 +55,31 @@ app.use('*', (req, res) => {
   })
 })
 
-// Error handling middleware (must be last)
+// Global error handler
 app.use(errorHandler)
 
-// Start server
-app.listen(port, () => {
-  console.log(`🚀 SmartChoice AI API server running on port ${port}`)
-  console.log(`📊 Health check available at http://localhost:${port}/health`)
-  console.log(`🌍 Environment: ${env.NODE_ENV}`)
-})
+// Server startup
+const PORT = env.PORT || 3000
 
-// Graceful shutdown
-process.on('SIGTERM', () => {
-  console.log('📴 SIGTERM received, shutting down gracefully')
-  process.exit(0)
-})
+async function startServer() {
+  try {
+    app.listen(PORT, () => {
+      // Using structured logging would be better here
+      if (env.NODE_ENV === 'development') {
+        console.log(`🚀 Server running on http://localhost:${PORT}`)
+        console.log(`📊 Health check: http://localhost:${PORT}/api/v1/health`)
+        console.log(`🔍 Search API: http://localhost:${PORT}/api/v1/search`)
+      }
+    })
+  } catch (error) {
+    console.error('Failed to start server:', error)
+    process.exit(1)
+  }
+}
 
-process.on('SIGINT', () => {
-  console.log('📴 SIGINT received, shutting down gracefully')
-  process.exit(0)
+startServer().catch((error) => {
+  console.error('Server startup failed:', error)
+  process.exit(1)
 })
 
 export default app
