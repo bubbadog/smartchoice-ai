@@ -152,7 +152,7 @@ preserve_checkboxes() {
 get_existing_issue() {
     local issue_title="$1"
     gh issue list --repo $REPO_OWNER/$REPO_NAME --state all --json number,title,body --limit 1000 | \
-    jq -r ".[] | select(.title == \"$issue_title\") | \"\(.number)|\(.body)\""
+    jq -r ".[] | select(.title == \"$issue_title\") | \"\(.number)\\n---BODY-SEPARATOR---\\n\(.body)\""
 }
 
 # Enhanced sync function that preserves progress
@@ -172,14 +172,19 @@ sync_issue_safe() {
     local current_hash=$(echo -n "$content" | shasum -a 256 | cut -d' ' -f1)
     local stored_hash=$(jq -r ".synced_issues[\"$number\"].hash // \"\"" $SYNC_FILE 2>/dev/null)
     
+    # Get the status from issues-data.json for this issue
+    local issue_status=$(jq -r ".issues[] | select(.number == \"$number\") | .status // \"\"" $ISSUES_DATA)
+    local stored_status=$(jq -r ".synced_issues[\"$number\"].status // \"\"" $SYNC_FILE 2>/dev/null)
+    
     # Get existing issue info
     local existing_info=$(get_existing_issue "$full_title")
     local existing_number=""
     local existing_body=""
     
     if [[ -n "$existing_info" ]]; then
-        existing_number=$(echo "$existing_info" | cut -d'|' -f1)
-        existing_body=$(echo "$existing_info" | cut -d'|' -f2-)
+        existing_number=$(echo "$existing_info" | head -n1)
+        existing_body=$(echo "$existing_info" | tail -n +3)
+        
     fi
     
     # Use tasks as-is since they now include proper checkbox states from issues-data.json
@@ -198,14 +203,14 @@ $acceptance
 
 **Dependencies**: $dependencies
 
----
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 *Last synced: $(date)*"
 
     local issue_labels=$(echo $labels | tr ',' ' ')
     
     if [[ -n "$existing_number" ]]; then
-        # Issue exists - check if content changed
-        if [[ "$current_hash" != "$stored_hash" ]]; then
+        # Issue exists - check if content or status changed
+        if [[ "$current_hash" != "$stored_hash" || "$issue_status" != "$stored_status" ]]; then
             echo -e "${YELLOW}🔄 Updating issue #$number: $title${NC}"
             echo -e "${BLUE}   📝 Preserving completed checkboxes${NC}"
             
@@ -213,8 +218,13 @@ $acceptance
             if [[ "${DRY_RUN:-false}" == "true" ]]; then
                 echo -e "${PURPLE}   [DRY RUN] Would update issue body${NC}"
             else
-                gh issue edit $existing_number --repo $REPO_OWNER/$REPO_NAME --body "$body" 2>/dev/null || echo -e "${RED}   ❌ Update failed${NC}"
-                update_sync_state "$number" "$current_hash" "updated"
+                # Use a temporary file to avoid pipe issues
+                local temp_body_file=$(mktemp)
+                printf '%s\n' "$body" > "$temp_body_file"
+                gh issue edit "$existing_number" --repo "$REPO_OWNER/$REPO_NAME" --body-file "$temp_body_file" || echo -e "${RED}   ❌ Update failed${NC}"
+                rm "$temp_body_file"
+                
+                update_sync_state "$number" "$current_hash" "updated" "$issue_status"
             fi
         else
             echo -e "${BLUE}✅ Issue #$number: $title (no changes)${NC}"
@@ -225,11 +235,15 @@ $acceptance
         if [[ "${DRY_RUN:-false}" == "true" ]]; then
             echo -e "${PURPLE}   [DRY RUN] Would create new issue${NC}"
         else
-            gh issue create --repo $REPO_OWNER/$REPO_NAME \
+            # Use a temporary file to avoid pipe issues
+            local temp_body_file=$(mktemp)
+            printf '%s\n' "$body" > "$temp_body_file"
+            gh issue create --repo "$REPO_OWNER/$REPO_NAME" \
                 --title "$full_title" \
-                --body "$body" \
-                --label "$issue_labels" >/dev/null 2>&1 || echo -e "${RED}   ❌ Creation failed${NC}"
-            update_sync_state "$number" "$current_hash" "created"
+                --body-file "$temp_body_file" \
+                --label "$issue_labels" || echo -e "${RED}   ❌ Creation failed${NC}"
+            rm "$temp_body_file"
+            update_sync_state "$number" "$current_hash" "created" "$issue_status"
         fi
     fi
 }
@@ -239,13 +253,14 @@ update_sync_state() {
     local issue_number="$1"
     local issue_hash="$2"
     local action="$3"
+    local status="$4"
     
     if [[ ! -f $SYNC_FILE ]]; then
         echo '{"synced_issues": {}, "last_sync": "", "version": "1.1"}' > $SYNC_FILE
     fi
     
-    jq --arg num "$issue_number" --arg hash "$issue_hash" --arg action "$action" --arg timestamp "$(date -Iseconds)" \
-       '.synced_issues[$num] = {hash: $hash, action: $action, last_updated: $timestamp} | .last_sync = $timestamp' \
+    jq --arg num "$issue_number" --arg hash "$issue_hash" --arg action "$action" --arg status "$status" --arg timestamp "$(date -Iseconds)" \
+       '.synced_issues[$num] = {hash: $hash, action: $action, status: $status, last_updated: $timestamp} | .last_sync = $timestamp' \
        $SYNC_FILE > temp_sync.json && mv temp_sync.json $SYNC_FILE
 }
 
@@ -292,9 +307,18 @@ sync_from_issues_file() {
 setup_labels() {
     echo -e "${YELLOW}🏷️ Setting up labels...${NC}"
     
+    # Get existing labels
+    local existing_labels=$(gh label list --repo $REPO_OWNER/$REPO_NAME --json name --jq '.[].name' 2>/dev/null || echo "")
+    
     jq -r '.labels[]? | "\(.name):\(.color):\(.description)"' $PROJECT_CONFIG | while IFS=':' read -r name color description; do
         if [[ -n "$name" && -n "$color" ]]; then
-            gh label create "$name" --color "$color" --description "$description" --repo $REPO_OWNER/$REPO_NAME 2>/dev/null || true
+            # Check if label already exists
+            if echo "$existing_labels" | grep -q "^$name$"; then
+                echo -e "${BLUE}   ✅ Label '$name' already exists${NC}"
+            else
+                echo -e "${GREEN}   📝 Creating label '$name'${NC}"
+                gh label create "$name" --color "$color" --description "$description" --repo $REPO_OWNER/$REPO_NAME 2>/dev/null || echo -e "${RED}   ❌ Failed to create label '$name'${NC}"
+            fi
         fi
     done
 }
@@ -303,10 +327,19 @@ setup_labels() {
 setup_milestones() {
     echo -e "${YELLOW}🎯 Setting up milestones...${NC}"
     
+    # Get existing milestones
+    local existing_milestones=$(gh api repos/$REPO_OWNER/$REPO_NAME/milestones --jq '.[].title' 2>/dev/null || echo "")
+    
     jq -r '.milestones[]? | "\(.title)|\(.description)|\(.due_days)"' $PROJECT_CONFIG | while IFS='|' read -r title description due_days; do
         if [[ -n "$title" && -n "$due_days" ]]; then
-            local due_date=$(date -d "+${due_days} days" -Iseconds 2>/dev/null || date -v +${due_days}d -Iseconds)
-            gh api repos/$REPO_OWNER/$REPO_NAME/milestones -f title="$title" -f description="$description" -f due_on="$due_date" 2>/dev/null || true
+            # Check if milestone already exists
+            if echo "$existing_milestones" | grep -q "^$title$"; then
+                echo -e "${BLUE}   ✅ Milestone '$title' already exists${NC}"
+            else
+                local due_date=$(date -d "+${due_days} days" -Iseconds 2>/dev/null || date -v +${due_days}d -Iseconds)
+                echo -e "${GREEN}   📝 Creating milestone '$title'${NC}"
+                gh api repos/$REPO_OWNER/$REPO_NAME/milestones -f title="$title" -f description="$description" -f due_on="$due_date" 2>/dev/null || echo -e "${RED}   ❌ Failed to create milestone '$title'${NC}"
+            fi
         fi
     done
 }
