@@ -182,8 +182,8 @@ sync_issue_safe() {
         existing_body=$(echo "$existing_info" | cut -d'|' -f2-)
     fi
     
-    # Preserve checkboxes in tasks
-    local preserved_tasks=$(preserve_checkboxes "$tasks" "$existing_body")
+    # Use tasks as-is since they now include proper checkbox states from issues-data.json
+    local preserved_tasks="$tasks"
     
     local body="**Priority**: $priority
 **Estimate**: $estimate
@@ -262,8 +262,24 @@ sync_from_issues_file() {
         local estimate=$(echo "$issue" | jq -r '.estimate')
         local labels=$(echo "$issue" | jq -r '.labels | join(",")')
         local description=$(echo "$issue" | jq -r '.description')
-        local tasks=$(echo "$issue" | jq -r '.tasks[] | "- [ ] " + .' | paste -sd '\n' -)
-        local acceptance=$(echo "$issue" | jq -r '.acceptance_criteria[] | "- " + .' | paste -sd '\n' -)
+        local tasks=$(echo "$issue" | jq -r '.tasks[]' | while IFS= read -r task; do
+            if [[ "$task" =~ ^✅ ]]; then
+                echo "- [x] ${task#✅ }"
+            elif [[ "$task" =~ ^🔄 ]]; then
+                echo "- [ ] ${task#🔄 }"
+            else
+                echo "- [ ] $task"
+            fi
+        done | paste -sd '\n' -)
+        local acceptance=$(echo "$issue" | jq -r '.acceptance_criteria[]' | while IFS= read -r criterion; do
+            if [[ "$criterion" =~ ^✅ ]]; then
+                echo "- [x] ${criterion#✅ }"
+            elif [[ "$criterion" =~ ^🔄 ]]; then
+                echo "- [ ] ${criterion#🔄 }"
+            else
+                echo "- $criterion"
+            fi
+        done | paste -sd '\n' -)
         local dependencies=$(echo "$issue" | jq -r '.dependencies')
         
         sync_issue_safe "$number" "$title" "$priority" "$estimate" "$labels" "$description" "$tasks" "$acceptance" "$dependencies"
