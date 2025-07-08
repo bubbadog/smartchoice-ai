@@ -206,7 +206,14 @@ $acceptance
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 *Last synced: $(date)*"
 
-    local issue_labels=$(echo $labels | tr ',' ' ')
+    # Build label arguments for GitHub CLI
+    local label_args=""
+    if [[ -n "$labels" ]]; then
+        IFS=',' read -ra LABEL_ARRAY <<< "$labels"
+        for label in "${LABEL_ARRAY[@]}"; do
+            label_args+="--label \"$label\" "
+        done
+    fi
     
     if [[ -n "$existing_number" ]]; then
         # Issue exists - check if content or status changed
@@ -238,10 +245,10 @@ $acceptance
             # Use a temporary file to avoid pipe issues
             local temp_body_file=$(mktemp)
             printf '%s\n' "$body" > "$temp_body_file"
-            gh issue create --repo "$REPO_OWNER/$REPO_NAME" \
-                --title "$full_title" \
-                --body-file "$temp_body_file" \
-                --label "$issue_labels" || echo -e "${RED}   ❌ Creation failed${NC}"
+            eval "gh issue create --repo \"$REPO_OWNER/$REPO_NAME\" \
+                --title \"$full_title\" \
+                --body-file \"$temp_body_file\" \
+                $label_args" || echo -e "${RED}   ❌ Creation failed${NC}"
             rm "$temp_body_file"
             update_sync_state "$number" "$current_hash" "created" "$issue_status"
         fi
