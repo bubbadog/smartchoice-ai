@@ -17,6 +17,8 @@ project-config-backup.json
 dist/
 .next/
 build/
+.turbo/
+*.tsbuildinfo
 
 # Logs
 *.log
