@@ -12,6 +12,8 @@
   "packageManager": "pnpm@8.15.3",
   "scripts": {
     "dev": "turbo run dev",
+    "dev:api": "pnpm --filter @smartchoice-ai/api dev",
+    "dev:web": "pnpm --filter @smartchoice-ai/web dev",
     "build": "turbo run build",
     "test": "turbo run test",
     "lint": "turbo run lint",

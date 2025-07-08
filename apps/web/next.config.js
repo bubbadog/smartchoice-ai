@@ -1,8 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   experimental: {
-    // Enable the new app directory
-    appDir: true,
+    typedRoutes: true,
   },
   // Transpile packages from the monorepo
   transpilePackages: [
@@ -10,6 +9,9 @@ const nextConfig = {
     '@smartchoice-ai/utils',
     '@smartchoice-ai/ui',
   ],
+  images: {
+    domains: ['images.unsplash.com'],
+  },
 }
 
 module.exports = nextConfig

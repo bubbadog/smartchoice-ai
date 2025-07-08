@@ -1,0 +1,165 @@
+import type { EnhancedProduct } from '@smartchoice-ai/shared-types'
+
+export const mockProducts: EnhancedProduct[] = [
+  {
+    id: '1',
+    title: 'Apple MacBook Pro 14-inch M3',
+    description: 'Powerful laptop with M3 chip, perfect for developers and creators',
+    price: 1999,
+    originalPrice: 2199,
+    currency: 'USD',
+    imageUrl: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=400',
+    brand: 'Apple',
+    category: 'Laptops',
+    rating: 4.8,
+    reviewCount: 1247,
+    availability: 'in_stock',
+    retailer: 'Apple Store',
+    retailerUrl: 'https://apple.com/macbook-pro',
+    confidence: 0.95,
+    dealScore: {
+      score: 85,
+      factors: {
+        priceHistory: 80,
+        competitorComparison: 85,
+        reviewSentiment: 90,
+        availability: 85,
+      },
+      recommendation: 'excellent',
+    },
+    aiSummary: 'Outstanding performance laptop with excellent build quality and powerful M3 chip',
+    pros: ['Exceptional performance', 'Great battery life', 'Premium build quality', 'Excellent display'],
+    cons: ['Expensive', 'Limited ports', 'No upgradability'],
+  },
+  {
+    id: '2',
+    title: 'Dell XPS 13 Plus',
+    description: 'Ultrabook with Intel 12th gen processors and premium design',
+    price: 1299,
+    originalPrice: 1499,
+    currency: 'USD',
+    imageUrl: 'https://images.unsplash.com/photo-1588702547919-26089e690ecc?w=400',
+    brand: 'Dell',
+    category: 'Laptops',
+    rating: 4.5,
+    reviewCount: 892,
+    availability: 'in_stock',
+    retailer: 'Best Buy',
+    retailerUrl: 'https://bestbuy.com/dell-xps-13',
+    confidence: 0.88,
+    dealScore: {
+      score: 78,
+      factors: {
+        priceHistory: 75,
+        competitorComparison: 80,
+        reviewSentiment: 85,
+        availability: 75,
+      },
+      recommendation: 'good',
+    },
+    aiSummary: 'Solid ultrabook with good performance and portability',
+    pros: ['Compact design', 'Good performance', 'Nice display', 'Reasonable price'],
+    cons: ['Average battery life', 'Limited I/O', 'Keyboard layout'],
+  },
+  {
+    id: '3',
+    title: 'Sony WH-1000XM5 Headphones',
+    description: 'Industry-leading noise canceling wireless headphones',
+    price: 299,
+    originalPrice: 399,
+    currency: 'USD',
+    imageUrl: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400',
+    brand: 'Sony',
+    category: 'Audio',
+    rating: 4.7,
+    reviewCount: 2156,
+    availability: 'in_stock',
+    retailer: 'Amazon',
+    retailerUrl: 'https://amazon.com/sony-wh1000xm5',
+    confidence: 0.92,
+    dealScore: {
+      score: 88,
+      factors: {
+        priceHistory: 85,
+        competitorComparison: 90,
+        reviewSentiment: 95,
+        availability: 85,
+      },
+      recommendation: 'excellent',
+    },
+    aiSummary: 'Best-in-class noise canceling headphones with exceptional audio quality',
+    pros: ['Excellent noise canceling', 'Great sound quality', 'Comfortable fit', 'Long battery life'],
+    cons: ['Price', 'No wired connection without power', 'Bulky carrying case'],
+  },
+  {
+    id: '4',
+    title: 'iPad Pro 12.9-inch M2',
+    description: 'Professional tablet with M2 chip and Liquid Retina XDR display',
+    price: 1099,
+    currency: 'USD',
+    imageUrl: 'https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?w=400',
+    brand: 'Apple',
+    category: 'Tablets',
+    rating: 4.6,
+    reviewCount: 743,
+    availability: 'in_stock',
+    retailer: 'Apple Store',
+    retailerUrl: 'https://apple.com/ipad-pro',
+    confidence: 0.89,
+    dealScore: {
+      score: 75,
+      factors: {
+        priceHistory: 70,
+        competitorComparison: 75,
+        reviewSentiment: 85,
+        availability: 70,
+      },
+      recommendation: 'good',
+    },
+    aiSummary: 'Powerful tablet for creative professionals and power users',
+    pros: ['Excellent display', 'Powerful performance', 'Apple Pencil support', 'Premium build'],
+    cons: ['Very expensive', 'Accessories sold separately', 'iPadOS limitations'],
+  },
+  {
+    id: '5',
+    title: 'iPhone 15 Pro',
+    description: 'Latest iPhone with titanium design and A17 Pro chip',
+    price: 999,
+    currency: 'USD',
+    imageUrl: 'https://images.unsplash.com/photo-1510557880182-3d4d3cba35a5?w=400',
+    brand: 'Apple',
+    category: 'Smartphones',
+    rating: 4.8,
+    reviewCount: 1892,
+    availability: 'in_stock',
+    retailer: 'Apple Store',
+    retailerUrl: 'https://apple.com/iphone-15-pro',
+    confidence: 0.94,
+    dealScore: {
+      score: 82,
+      factors: {
+        priceHistory: 80,
+        competitorComparison: 85,
+        reviewSentiment: 90,
+        availability: 75,
+      },
+      recommendation: 'excellent',
+    },
+    aiSummary: 'Latest iPhone with premium titanium design and excellent cameras',
+    pros: ['Premium materials', 'Excellent cameras', 'Great performance', 'USB-C'],
+    cons: ['Very expensive', 'No significant design changes', 'Short battery life'],
+  },
+]
+
+export function searchMockProducts(query: string, limit = 20): EnhancedProduct[] {
+  const normalizedQuery = query.toLowerCase()
+  
+  return mockProducts
+    .filter(product => 
+      product.title.toLowerCase().includes(normalizedQuery) ||
+      product.description?.toLowerCase().includes(normalizedQuery) ||
+      product.brand?.toLowerCase().includes(normalizedQuery) ||
+      product.category?.toLowerCase().includes(normalizedQuery)
+    )
+    .slice(0, limit)
+}
