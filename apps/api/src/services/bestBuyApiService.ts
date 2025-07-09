@@ -80,12 +80,12 @@ export class BestBuyApiService {
         searchQuery += `&categoryPath.id=${request.categoryId}`
       }
 
-      const url = `${this.baseUrl}/products(${searchQuery})?${params.toString()}`
+      const _url = `${this.baseUrl}/products(${searchQuery})?${params.toString()}`
 
-      console.log(`Searching Best Buy API: ${url}`)
+      console.log(`Searching Best Buy API: ${_url}`)
       
       // In a real implementation, make the actual API call here
-      // const response = await fetch(url)
+      // const response = await fetch(_url)
       // const data = await response.json()
       // return data.products.map(this.convertToEnhancedProduct.bind(this))
 

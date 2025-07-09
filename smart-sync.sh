@@ -67,7 +67,7 @@ load_config() {
 create_basic_issues_template() {
     cat > $ISSUES_DATA << 'EOF'
 {
-  "version": "1.0.0",
+      "version": "1.1.0",
   "last_updated": "2024-12-07",
   "total_issues": 3,
   "issues": [
@@ -168,12 +168,14 @@ sync_issue_safe() {
     local dependencies=$9
     
     local full_title="#$number: $title"
-    local content="$title$description$tasks$acceptance"
+    
+    # Get the status from issues-data.json for this issue FIRST
+    local issue_status=$(jq -r ".issues[] | select(.number == \"$number\") | .status // \"\"" $ISSUES_DATA)
+    
+    # Include status, priority, estimate, and labels in hash to detect changes in these fields
+    local content="$title$description$tasks$acceptance$issue_status$priority$estimate$labels"
     local current_hash=$(echo -n "$content" | shasum -a 256 | cut -d' ' -f1)
     local stored_hash=$(jq -r ".synced_issues[\"$number\"].hash // \"\"" $SYNC_FILE 2>/dev/null)
-    
-    # Get the status from issues-data.json for this issue
-    local issue_status=$(jq -r ".issues[] | select(.number == \"$number\") | .status // \"\"" $ISSUES_DATA)
     local stored_status=$(jq -r ".synced_issues[\"$number\"].status // \"\"" $SYNC_FILE 2>/dev/null)
     
     # Get existing issue info
@@ -190,7 +192,28 @@ sync_issue_safe() {
     # Use tasks as-is since they now include proper checkbox states from issues-data.json
     local preserved_tasks="$tasks"
     
-    local body="**Priority**: $priority
+    # Format status with appropriate emoji
+    local status_display=""
+    case "$issue_status" in
+        "completed")
+            status_display="✅ **COMPLETED**"
+            ;;
+        "in_progress")
+            status_display="🔄 **IN PROGRESS**"
+            ;;
+        "pending")
+            status_display="⏳ **PENDING**"
+            ;;
+        "blocked")
+            status_display="🚫 **BLOCKED**"
+            ;;
+        *)
+            status_display="📋 **$(echo "$issue_status" | tr '[:lower:]' '[:upper:]')**"
+            ;;
+    esac
+
+    local body="**Status**: $status_display
+**Priority**: $priority
 **Estimate**: $estimate
 
 **Description**: $description
@@ -219,36 +242,76 @@ $acceptance
         # Issue exists - check if content or status changed
         if [[ "$current_hash" != "$stored_hash" || "$issue_status" != "$stored_status" ]]; then
             echo -e "${YELLOW}🔄 Updating issue #$number: $title${NC}"
-            echo -e "${BLUE}   📝 Preserving completed checkboxes${NC}"
             
             # Show what would change (preview mode)
             if [[ "${DRY_RUN:-false}" == "true" ]]; then
-                echo -e "${PURPLE}   [DRY RUN] Would update issue body${NC}"
+                # Silent dry run - no extra output
+                :
             else
                 # Use a temporary file to avoid pipe issues
                 local temp_body_file=$(mktemp)
                 printf '%s\n' "$body" > "$temp_body_file"
-                gh issue edit "$existing_number" --repo "$REPO_OWNER/$REPO_NAME" --body-file "$temp_body_file" || echo -e "${RED}   ❌ Update failed${NC}"
+                
+                # Update issue body first
+                if gh issue edit "$existing_number" --repo "$REPO_OWNER/$REPO_NAME" --body-file "$temp_body_file"; then
+                    # Then update labels using GitHub API directly
+                    if [[ -n "$labels" ]]; then
+                        # Convert comma-separated labels to JSON array and send as raw input
+                        local labels_json=$(echo "$labels" | jq -R 'split(",") | map(select(. != ""))')
+                        echo "$labels_json" | gh api repos/$REPO_OWNER/$REPO_NAME/issues/$existing_number/labels \
+                            --method PUT \
+                            --input - >/dev/null 2>&1
+                    fi
+                    SYNC_SESSION_UPDATED=$((SYNC_SESSION_UPDATED + 1))
+                    if [[ "$issue_status" == "completed" ]]; then
+                        SYNC_SESSION_COMPLETED=$((SYNC_SESSION_COMPLETED + 1))
+                    fi
+                else
+                    echo -e "${RED}   ❌ Update failed${NC}"
+                fi
                 rm "$temp_body_file"
                 
                 update_sync_state "$number" "$current_hash" "updated" "$issue_status"
             fi
         else
-            echo -e "${BLUE}✅ Issue #$number: $title (no changes)${NC}"
+            echo -e "${BLUE}✅ Issue #$number: $title${NC}"
+            SYNC_SESSION_NO_CHANGE=$((SYNC_SESSION_NO_CHANGE + 1))
         fi
     else
         # Create new issue
         echo -e "${GREEN}📝 Creating new issue #$number: $title${NC}"
         if [[ "${DRY_RUN:-false}" == "true" ]]; then
-            echo -e "${PURPLE}   [DRY RUN] Would create new issue${NC}"
+            # Silent dry run - no extra output
+            :
         else
             # Use a temporary file to avoid pipe issues
             local temp_body_file=$(mktemp)
             printf '%s\n' "$body" > "$temp_body_file"
-            eval "gh issue create --repo \"$REPO_OWNER/$REPO_NAME\" \
-                --title \"$full_title\" \
-                --body-file \"$temp_body_file\" \
-                $label_args" || echo -e "${RED}   ❌ Creation failed${NC}"
+            
+            # Create issue first without labels
+            local new_issue_url=$(gh issue create --repo "$REPO_OWNER/$REPO_NAME" \
+                --title "$full_title" \
+                --body-file "$temp_body_file" 2>/dev/null)
+            
+            if [[ -n "$new_issue_url" ]]; then
+                # Extract issue number from URL
+                local new_issue_number=$(echo "$new_issue_url" | grep -o '[0-9]*$')
+                
+                # Add labels using GitHub API if any
+                if [[ -n "$labels" ]]; then
+                    local labels_json=$(echo "$labels" | jq -R 'split(",") | map(select(. != ""))')
+                    echo "$labels_json" | gh api repos/$REPO_OWNER/$REPO_NAME/issues/$new_issue_number/labels \
+                        --method PUT \
+                        --input - >/dev/null 2>&1
+                fi
+                
+                SYNC_SESSION_CREATED=$((SYNC_SESSION_CREATED + 1))
+                if [[ "$issue_status" == "completed" ]]; then
+                    SYNC_SESSION_COMPLETED=$((SYNC_SESSION_COMPLETED + 1))
+                fi
+            else
+                echo -e "${RED}   ❌ Creation failed${NC}"
+            fi
             rm "$temp_body_file"
             update_sync_state "$number" "$current_hash" "created" "$issue_status"
         fi
@@ -263,7 +326,7 @@ update_sync_state() {
     local status="$4"
     
     if [[ ! -f $SYNC_FILE ]]; then
-        echo '{"synced_issues": {}, "last_sync": "", "version": "1.1"}' > $SYNC_FILE
+        echo '{"synced_issues": {}, "last_sync": "", "version": "1.2"}' > $SYNC_FILE
     fi
     
     jq --arg num "$issue_number" --arg hash "$issue_hash" --arg action "$action" --arg status "$status" --arg timestamp "$(date -Iseconds)" \
@@ -271,10 +334,22 @@ update_sync_state() {
        $SYNC_FILE > temp_sync.json && mv temp_sync.json $SYNC_FILE
 }
 
+# Global counters for current sync session
+SYNC_SESSION_CREATED=0
+SYNC_SESSION_UPDATED=0
+SYNC_SESSION_NO_CHANGE=0
+SYNC_SESSION_COMPLETED=0
+
 # Load and sync issues from external file
 sync_from_issues_file() {
     local issue_count=$(jq '.issues | length' $ISSUES_DATA)
     echo -e "${YELLOW}📝 Syncing $issue_count issues from $ISSUES_DATA...${NC}"
+    
+    # Reset session counters
+    SYNC_SESSION_CREATED=0
+    SYNC_SESSION_UPDATED=0
+    SYNC_SESSION_NO_CHANGE=0
+    SYNC_SESSION_COMPLETED=0
     
     for i in $(seq 0 $((issue_count - 1))); do
         local issue=$(jq ".issues[$i]" $ISSUES_DATA)
@@ -303,6 +378,18 @@ sync_from_issues_file() {
             fi
         done | paste -sd '\n' -)
         local dependencies=$(echo "$issue" | jq -r '.dependencies')
+        
+        # Get issue status to check if we need to add completed label
+        local issue_status=$(echo "$issue" | jq -r '.status // ""')
+        
+        # Automatically add "completed" label if status is completed and not already present
+        if [[ "$issue_status" == "completed" && ! "$labels" =~ "completed" ]]; then
+            if [[ -n "$labels" ]]; then
+                labels="$labels,completed"
+            else
+                labels="completed"
+            fi
+        fi
         
         sync_issue_safe "$number" "$title" "$priority" "$estimate" "$labels" "$description" "$tasks" "$acceptance" "$dependencies"
     done
@@ -380,13 +467,28 @@ show_sync_summary() {
     fi
     
     echo -e "\n${GREEN}📊 Sync Summary:${NC}"
-    local created=$(jq -r '.synced_issues | to_entries[] | select(.value.action == "created") | .key' $SYNC_FILE 2>/dev/null | wc -l)
-    local updated=$(jq -r '.synced_issues | to_entries[] | select(.value.action == "updated") | .key' $SYNC_FILE 2>/dev/null | wc -l)
-    local total=$(jq -r '.synced_issues | length' $SYNC_FILE 2>/dev/null)
     
-    echo "  Created: $created issues"
-    echo "  Updated: $updated issues"
+    # Show current session stats if available
+    if [[ -n "${SYNC_SESSION_CREATED:-}" ]]; then
+        echo -e "${BLUE}📈 This Sync Session:${NC}"
+        echo "  Created: $SYNC_SESSION_CREATED issues"
+        echo "  Updated: $SYNC_SESSION_UPDATED issues" 
+        echo "  No changes: $SYNC_SESSION_NO_CHANGE issues"
+        if [[ $SYNC_SESSION_COMPLETED -gt 0 ]]; then
+            echo -e "  ${GREEN}✅ Completed issues: $SYNC_SESSION_COMPLETED${NC}"
+        fi
+        echo ""
+    fi
+    
+    # Show historical totals
+    local total=$(jq -r '.synced_issues | length' $SYNC_FILE 2>/dev/null)
+    local total_completed=$(jq -r '.synced_issues | to_entries[] | select(.value.status == "completed") | .key' $SYNC_FILE 2>/dev/null | wc -l | tr -d ' ')
+    local total_in_progress=$(jq -r '.synced_issues | to_entries[] | select(.value.status == "in_progress") | .key' $SYNC_FILE 2>/dev/null | wc -l | tr -d ' ')
+    
+    echo -e "${BLUE}📊 Overall Project Status:${NC}"
     echo "  Total managed: $total issues"
+    echo "  Completed: $total_completed issues"
+    echo "  In progress: $total_in_progress issues"
     echo -e "  Repository: https://github.com/$REPO_OWNER/$REPO_NAME/issues"
     echo -e "  Last sync: $(jq -r '.last_sync' $SYNC_FILE 2>/dev/null)"
     echo -e "  Issues source: $ISSUES_DATA"
