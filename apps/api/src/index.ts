@@ -9,9 +9,11 @@ import './types/express'
 
 import { errorHandler } from './middleware/errorHandler'
 import { requestLogger } from './middleware/requestLogger'
+import authRouter from './routes/auth'
 import { healthRouter } from './routes/health'
 import { productsRouter } from './routes/products'
 import { searchRouter } from './routes/search'
+import usersRouter from './routes/users'
 import { validateEnv } from './utils/env'
 
 const env = validateEnv()
@@ -38,9 +40,11 @@ app.use(requestLogger)
 const apiV1 = express.Router()
 
 // Mount route handlers
+apiV1.use('/auth', authRouter)
 apiV1.use('/health', healthRouter)
 apiV1.use('/search', searchRouter)
 apiV1.use('/products', productsRouter)
+apiV1.use('/users', usersRouter)
 
 // API versioning
 app.use('/api/v1', apiV1)
@@ -69,6 +73,8 @@ async function startServer() {
         console.log(`🚀 Server running on http://localhost:${PORT}`)
         console.log(`📊 Health check: http://localhost:${PORT}/api/v1/health`)
         console.log(`🔍 Search API: http://localhost:${PORT}/api/v1/search`)
+        console.log(`🔐 Auth API: http://localhost:${PORT}/api/v1/auth`)
+        console.log(`👤 Users API: http://localhost:${PORT}/api/v1/users`)
       }
     })
   } catch (error) {
