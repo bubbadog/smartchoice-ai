@@ -1,35 +1,69 @@
 import type { SearchRequest, SearchResponse, EnhancedProduct } from '@smartchoice-ai/shared-types'
 
 import { searchMockProducts, mockProducts } from '../data/mockProducts'
-
+import { searchCache, productCache, similarProductsCache } from './cacheService'
+import { ProductAggregationService } from './productAggregationService'
 import { VectorSearchService } from './vectorSearchService'
 
 export class SearchService {
   private vectorSearchService: VectorSearchService
+  private aggregationService: ProductAggregationService
 
   constructor() {
     this.vectorSearchService = new VectorSearchService()
+    this.aggregationService = new ProductAggregationService()
   }
 
   async searchProducts(searchRequest: SearchRequest): Promise<SearchResponse> {
     const { query: _query, filters: _filters, pagination = { page: 1, limit: 20 }, sortBy = 'relevance' } = searchRequest
     
-    // TODO: Add proper logging service
-    // console.log(`🔍 Searching for: "${query}"`)
+    // Create cache key from search request (normalize for consistent caching)
+    const cacheKey = {
+      query: searchRequest.query,
+      filters: searchRequest.filters || {},
+      sortBy: searchRequest.sortBy || 'relevance',
+      page: pagination.page,
+      limit: pagination.limit,
+    }
+    
+    // Check cache first
+    const cachedResult = searchCache.get<SearchResponse>(cacheKey)
+    if (cachedResult) {
+      // Update timestamp but keep cached data
+      return {
+        ...cachedResult,
+        timestamp: new Date().toISOString(),
+      }
+    }
     
     try {
-      // Use vector search for semantic search
-      const vectorResults = await this.vectorSearchService.hybridSearch(searchRequest)
-      
-      // Get full product details for vector search results
-      const productIds = vectorResults.map(r => r.productId)
-      let results = await this.getProductsByIds(productIds)
-      
-      // Add relevance scores from vector search
-      results = results.map((product, index) => ({
-        ...product,
-        confidence: vectorResults[index]?.score || 0,
-      }))
+      // First try aggregated search (mock data only for now)
+      let results = await this.aggregationService.aggregateSearchResults(searchRequest, {
+        sources: ['mock'], // Only use mock data until APIs are configured
+        maxResultsPerSource: 20,
+        enableDeduplication: true,
+        sortBy: sortBy as any,
+      })
+
+      // If aggregated search returns few results, try vector search as backup
+      if (results.length < 3) {
+        console.log('Aggregated search returned few results, trying vector search...')
+        try {
+          const vectorResults = await this.vectorSearchService.hybridSearch(searchRequest)
+          const productIds = vectorResults.map(r => r.productId)
+          const vectorProducts = await this.getProductsByIds(productIds)
+          
+          // Add vector products to results with relevance scores
+          const enhancedVectorProducts = vectorProducts.map((product, index) => ({
+            ...product,
+            confidence: vectorResults[index]?.score || 0,
+          }))
+          
+          results = [...results, ...enhancedVectorProducts]
+        } catch (vectorError) {
+          console.error('Vector search also failed:', vectorError)
+        }
+      }
       
       // Apply additional sorting if needed
       results = this.sortProducts(results, sortBy)
@@ -40,7 +74,7 @@ export class SearchService {
       const offset = (pagination.page - 1) * pagination.limit
       const paginatedResults = results.slice(offset, offset + pagination.limit)
       
-      return {
+      const response: SearchResponse = {
         success: true,
         data: {
           items: paginatedResults,
@@ -55,10 +89,15 @@ export class SearchService {
         },
         timestamp: new Date().toISOString(),
       }
-    } catch (error) {
-      console.error('Vector search failed, falling back to mock search:', error)
       
-      // Fallback to mock search if vector search fails
+      // Cache the result
+      searchCache.set(cacheKey, response)
+      
+      return response
+    } catch (error) {
+      console.error('All search methods failed, falling back to mock search:', error)
+      
+      // Final fallback to mock search
       return this.searchProductsWithMock(searchRequest)
     }
   }
@@ -123,12 +162,42 @@ export class SearchService {
   }
   
   async getProduct(id: string): Promise<EnhancedProduct | null> {
-    return mockProducts.find(p => p.id === id) || null
+    // Check cache first
+    const cachedProduct = productCache.get<EnhancedProduct>(id)
+    if (cachedProduct) {
+      return cachedProduct
+    }
+    
+    // Try to get product from multiple sources
+    let product = await this.aggregationService.getProductFromMultipleSources(id)
+    
+    // Fallback to mock data if not found
+    if (!product) {
+      product = mockProducts.find(p => p.id === id) || null
+    }
+    
+    // Cache the result if found
+    if (product) {
+      productCache.set(id, product)
+    }
+    
+    return product
   }
   
   async getSimilarProducts(id: string, limit = 5): Promise<EnhancedProduct[]> {
+    // Create cache key for similar products
+    const cacheKey = `similar:${id}:${limit}`
+    
+    // Check cache first
+    const cachedSimilar = similarProductsCache.get<EnhancedProduct[]>(cacheKey)
+    if (cachedSimilar) {
+      return cachedSimilar
+    }
+    
     const product = await this.getProduct(id)
     if (!product) return []
+    
+    let similarProducts: EnhancedProduct[] = []
     
     try {
       // Use vector search to find similar products based on embeddings
@@ -147,10 +216,10 @@ export class SearchService {
         .slice(0, limit)
         .map(r => r.productId)
       
-      const similarProducts = await this.getProductsByIds(similarProductIds)
+      const products = await this.getProductsByIds(similarProductIds)
       
       // Add relevance scores
-      return similarProducts.map((product, index) => ({
+      similarProducts = products.map((product, index) => ({
         ...product,
         confidence: vectorResults[index]?.score || 0,
       }))
@@ -158,13 +227,18 @@ export class SearchService {
       console.error('Vector search failed for similar products, falling back to mock:', error)
       
       // Fallback to mock similar products
-      return mockProducts
+      similarProducts = mockProducts
         .filter(p => 
           p.id !== id && 
           (p.category === product.category || p.brand === product.brand)
         )
         .slice(0, limit)
     }
+    
+    // Cache the result
+    similarProductsCache.set(cacheKey, similarProducts)
+    
+    return similarProducts
   }
   
   async getProductsByIds(ids: string[]): Promise<EnhancedProduct[]> {

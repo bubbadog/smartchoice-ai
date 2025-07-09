@@ -1,6 +1,8 @@
 import type { HealthCheckResponse } from '@smartchoice-ai/shared-types'
 import { Router } from 'express'
 
+import { searchCache, productCache, similarProductsCache } from '../services/cacheService'
+
 export const healthRouter = Router()
 
 const startTime = Date.now()

@@ -77,7 +77,7 @@ productsRouter.post('/compare', async (req, res, next) => {
   try {
     const validationResult = compareRequestSchema.safeParse(req.body)
     if (!validationResult.success) {
-      throw new AppError('Invalid compare request: ' + validationResult.error.errors[0].message, 400)
+      throw new AppError('Invalid compare request: ' + validationResult.error.errors[0]?.message, 400)
     }
     
     const { productIds } = validationResult.data
@@ -102,12 +102,12 @@ productsRouter.post('/compare', async (req, res, next) => {
         rating: product.rating,
         retailer: product.retailer,
         category: product.category,
-        image: product.image,
+        imageUrl: product.imageUrl,
         confidence: product.confidence,
         dealScore: product.dealScore,
         pros: product.pros,
         cons: product.cons,
-        url: product.url,
+        retailerUrl: product.retailerUrl,
       })),
       summary: {
         priceRange: {

@@ -13,6 +13,12 @@ const envSchema = z.object({
   PINECONE_API_KEY: z.string().optional(),
   REDIS_URL: z.string().optional(),
   JINA_API_KEY: z.string().optional(),
+  // Amazon Product Advertising API
+  AMAZON_ACCESS_KEY: z.string().optional(),
+  AMAZON_SECRET_KEY: z.string().optional(),
+  AMAZON_PARTNER_TAG: z.string().optional(),
+  // Best Buy API
+  BESTBUY_API_KEY: z.string().optional(),
 })
 
 export type Env = z.infer<typeof envSchema>
