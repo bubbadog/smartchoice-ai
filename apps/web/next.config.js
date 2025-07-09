@@ -10,7 +10,20 @@ const nextConfig = {
     '@smartchoice-ai/ui',
   ],
   images: {
-    domains: ['images.unsplash.com'],
+    domains: [
+      'images.unsplash.com',
+      // Best Buy domains
+      'pisces.bbystatic.com',
+      'assets.bbystatic.com',
+      'www.bestbuy.com',
+      // Amazon domains (for when fixed)
+      'images-na.ssl-images-amazon.com',
+      'm.media-amazon.com',
+      'images.amazon.com',
+      // Other common retailer domains
+      'i5.walmartimages.com',
+      'target.scene7.com',
+    ],
   },
 }
 

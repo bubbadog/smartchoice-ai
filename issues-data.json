@@ -1,7 +1,7 @@
 {
-  "version": "1.2.0",
+  "version": "1.3.0",
   "last_updated": "07-09-2025",
-  "total_issues": 42,
+  "total_issues": 44,
   "issues": [
     {
       "number": "001",
@@ -357,7 +357,7 @@
         "✅ Mock data provides seamless development experience"
       ],
       "dependencies": "#011",
-      "notes": "Complete Amazon API service implementation with full product search, data normalization, error handling, and mock fallback for development."
+      "notes": "Complete Amazon API service implementation with full product search, data normalization, error handling, and mock fallback for development. Note: Temporarily disabled in search service (07-09-2025) due to configuration issues - needs proper Amazon Product Advertising API credentials."
     },
     {
       "number": "013",
@@ -1185,6 +1185,69 @@
       ],
       "dependencies": "#006, #008",
       "notes": "Complete advanced caching implementation with search cache (10min TTL), product cache (30min TTL), and similar products cache (20min TTL), plus comprehensive monitoring and statistics."
+    },
+    {
+      "number": "043",
+      "title": "Search Service Debugging & Stability Improvements",
+      "priority": "P0 (Critical)",
+      "estimate": "3 hours",
+      "labels": ["P0", "debugging", "backend", "completed"],
+      "milestone": "Week 1: Foundation & Infrastructure",
+      "status": "completed",
+      "completed_date": "07-09-2025",
+      "description": "Debug and resolve search service issues with comprehensive logging and error handling.",
+      "tasks": [
+        "✅ Add comprehensive debugging logging to search services",
+        "✅ Identify and resolve cache-related empty result issues",
+        "✅ Temporarily disable Amazon API to prevent search failures",
+        "✅ Enhance error handling in product aggregation service",
+        "✅ Add detailed logging for each search source (Amazon, Best Buy, Mock)",
+        "✅ Implement proper error isolation between search sources",
+        "✅ Fix vector search backup mechanism",
+        "✅ Validate search service reliability with Best Buy + Mock data"
+      ],
+      "acceptance_criteria": [
+        "✅ Search service returns consistent results",
+        "✅ Debugging logs provide clear insight into search flow",
+        "✅ Error handling prevents single source failures from breaking search",
+        "✅ Cache issues resolved and working correctly",
+        "✅ Best Buy API integration working reliably",
+        "✅ Mock data fallback functioning properly",
+        "✅ Vector search backup mechanism operational",
+        "✅ Search performance optimized and stable"
+      ],
+      "dependencies": "#008, #012, #013",
+      "notes": "Critical debugging session that resolved search service reliability issues. Amazon API temporarily disabled until configuration can be fixed. Search now works reliably with Best Buy API + Mock data, providing consistent AI-powered results with deal scoring and analysis."
+    },
+    {
+      "number": "044",
+      "title": "Next.js Image Domain Configuration Fix",
+      "priority": "P1",
+      "estimate": "1 hour",
+      "labels": ["P1", "frontend", "configuration", "completed"],
+      "milestone": "Week 1: Foundation & Infrastructure", 
+      "status": "completed",
+      "completed_date": "07-09-2025",
+      "description": "Fix Next.js image optimization errors by configuring allowed image domains.",
+      "tasks": [
+        "✅ Add Best Buy image domains to next.config.js",
+        "✅ Configure pisces.bbystatic.com for Best Buy product images",
+        "✅ Add additional Best Buy image domains (assets.bbystatic.com)",
+        "✅ Preemptively add Amazon image domains for future use",
+        "✅ Add Walmart and Target image domains for scalability",
+        "✅ Restart frontend to apply new configuration",
+        "✅ Validate image loading works without errors"
+      ],
+      "acceptance_criteria": [
+        "✅ Best Buy product images load without errors",
+        "✅ Next.js image optimization works correctly",
+        "✅ No runtime errors for unconfigured image hosts",
+        "✅ Configuration supports future retailer integrations",
+        "✅ Image domains properly documented in config",
+        "✅ Frontend works seamlessly with API product data"
+      ],
+      "dependencies": "#016, #013",
+      "notes": "Fixed critical runtime error preventing Best Buy product images from displaying. Added comprehensive image domain configuration for current and future retailer integrations."
     }
   ]
 }

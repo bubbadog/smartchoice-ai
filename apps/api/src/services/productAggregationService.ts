@@ -39,14 +39,18 @@ export class ProductAggregationService {
 
     // Amazon search
     if (sources.includes('amazon')) {
+      console.log('🔍 Starting Amazon search...')
       const amazonPromise = this.amazonService.searchProducts({
         keywords: searchRequest.query,
         itemCount: maxResultsPerSource,
         brand: searchRequest.filters?.brand,
         minPrice: searchRequest.filters?.minPrice,
         maxPrice: searchRequest.filters?.maxPrice,
+      }).then(results => {
+        console.log(`📦 Amazon returned ${results.length} results`)
+        return results
       }).catch(error => {
-        console.error('Amazon search failed:', error)
+        console.error('❌ Amazon search failed:', error)
         return []
       })
       searchPromises.push(amazonPromise)
@@ -54,13 +58,17 @@ export class ProductAggregationService {
 
     // Best Buy search  
     if (sources.includes('bestbuy')) {
+      console.log('🔍 Starting Best Buy search...')
       const bestBuyPromise = this.bestBuyService.searchProducts({
         query: searchRequest.query,
         pageSize: maxResultsPerSource,
         minPrice: searchRequest.filters?.minPrice,
         maxPrice: searchRequest.filters?.maxPrice,
+      }).then(results => {
+        console.log(`📦 Best Buy returned ${results.length} results`)
+        return results
       }).catch(error => {
-        console.error('Best Buy search failed:', error)
+        console.error('❌ Best Buy search failed:', error)
         return []
       })
       searchPromises.push(bestBuyPromise)
@@ -68,9 +76,10 @@ export class ProductAggregationService {
 
     // Mock data search
     if (sources.includes('mock')) {
-      const mockPromise = Promise.resolve(
-        searchMockProducts(searchRequest.query, maxResultsPerSource)
-      )
+      console.log('🔍 Starting Mock data search...')
+      const mockResults = searchMockProducts(searchRequest.query, maxResultsPerSource)
+      console.log(`📦 Mock data returned ${mockResults.length} results`)
+      const mockPromise = Promise.resolve(mockResults)
       searchPromises.push(mockPromise)
     }
 

@@ -11,7 +11,7 @@ healthRouter.get('/', (_req, res) => {
   const uptime = Date.now() - startTime
   
   // Get cache statistics for health monitoring
-  const cacheStats = {
+  const _cacheStats = {
     search: searchCache.getStats(),
     products: productCache.getStats(),
     similarProducts: similarProductsCache.getStats(),

@@ -29,6 +29,7 @@ export class SearchService {
     // Check cache first
     const cachedResult = searchCache.get<SearchResponse>(cacheKey)
     if (cachedResult) {
+      console.log('📦 Returning cached result')
       // Update timestamp but keep cached data
       return {
         ...cachedResult,
@@ -37,19 +38,24 @@ export class SearchService {
     }
     
     try {
-      // First try aggregated search (mock data only for now)
+      console.log(`🔍 Starting search for: "${searchRequest.query}"`)
+      
+      // First try aggregated search (excluding Amazon until fixed)
       let results = await this.aggregationService.aggregateSearchResults(searchRequest, {
-        sources: ['mock'], // Only use mock data until APIs are configured
+        sources: ['bestbuy', 'mock'], // Excluding Amazon API until fixed
         maxResultsPerSource: 20,
         enableDeduplication: true,
         sortBy: sortBy as any,
       })
+      
+      console.log(`📊 Aggregated search returned ${results.length} results`)
 
       // If aggregated search returns few results, try vector search as backup
       if (results.length < 3) {
-        console.log('Aggregated search returned few results, trying vector search...')
+        console.log('🔍 Aggregated search returned few results, trying vector search...')
         try {
           const vectorResults = await this.vectorSearchService.hybridSearch(searchRequest)
+          console.log(`📦 Vector search returned ${vectorResults.length} results`)
           const productIds = vectorResults.map(r => r.productId)
           const vectorProducts = await this.getProductsByIds(productIds)
           
@@ -61,7 +67,7 @@ export class SearchService {
           
           results = [...results, ...enhancedVectorProducts]
         } catch (vectorError) {
-          console.error('Vector search also failed:', vectorError)
+          console.error('❌ Vector search also failed:', vectorError)
         }
       }
       

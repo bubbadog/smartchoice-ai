@@ -51,7 +51,7 @@ export class BestBuyApiService {
   // Search for products on Best Buy
   async searchProducts(request: BestBuyProductSearchRequest): Promise<EnhancedProduct[]> {
     if (!this.isRealApiConfigured()) {
-      console.log('Best Buy API not configured, returning mock data')
+      // console.log('Best Buy API not configured, returning mock data')
       return this.getMockBestBuyProducts(request.query)
     }
 
@@ -82,7 +82,7 @@ export class BestBuyApiService {
 
       const _url = `${this.baseUrl}/products(${searchQuery})?${params.toString()}`
 
-      console.log(`Searching Best Buy API: ${_url}`)
+      // console.log(`Searching Best Buy API: ${_url}`)
       
       // In a real implementation, make the actual API call here
       // const response = await fetch(_url)
@@ -100,7 +100,7 @@ export class BestBuyApiService {
   // Get product details by SKU
   async getProductBySku(sku: string): Promise<EnhancedProduct | null> {
     if (!this.isRealApiConfigured()) {
-      console.log('Best Buy API not configured, returning mock data')
+      // console.log('Best Buy API not configured, returning mock data')
       return this.getMockProductBySku(sku)
     }
 
@@ -110,9 +110,9 @@ export class BestBuyApiService {
         format: 'json'
       })
 
-      const url = `${this.baseUrl}/products/${sku}?${params.toString()}`
+      const _url = `${this.baseUrl}/products/${sku}?${params.toString()}`
       
-      console.log(`Fetching Best Buy product: ${sku}`)
+      // console.log(`Fetching Best Buy product: ${sku}`)
       
       // In a real implementation, make the actual API call here
       // const response = await fetch(url)
