@@ -1,6 +1,6 @@
+import cors from 'cors'
 import { config } from 'dotenv'
 config()
-import cors from 'cors'
 import express, { json, urlencoded } from 'express'
 import helmet from 'helmet'
 
@@ -22,10 +22,12 @@ const app = express()
 app.use(helmet())
 
 // CORS configuration
-app.use(cors({
-  origin: env.FRONTEND_URL,
-  credentials: true,
-}))
+app.use(
+  cors({
+    origin: env.FRONTEND_URL,
+    credentials: true,
+  }),
+)
 
 // Body parsing middleware
 app.use(json())
