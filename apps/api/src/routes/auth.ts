@@ -1,16 +1,16 @@
-import { Router } from 'express'
-import { rateLimit } from 'express-rate-limit'
-import { 
-  SignUpRequestSchema, 
-  SignInRequestSchema, 
+import {
+  SignUpRequestSchema,
+  SignInRequestSchema,
   RefreshTokenRequestSchema,
   UserUpdateRequestSchema,
-  ChangePasswordRequestSchema
+  ChangePasswordRequestSchema,
 } from '@smartchoice-ai/shared-types'
+import { Router } from 'express'
+import { rateLimit } from 'express-rate-limit'
 
-import { authService } from '../services/authService'
 import { authenticateToken } from '../middleware/auth'
 import { AppError } from '../middleware/errorHandler'
+import { authService } from '../services/authService'
 
 const router = Router()
 
@@ -28,7 +28,7 @@ router.post('/signup', authLimiter, async (req, res, next) => {
   try {
     const data = SignUpRequestSchema.parse(req.body)
     const result = await authService.signUp(data)
-    
+
     res.status(201).json({
       success: true,
       data: result,
@@ -44,7 +44,7 @@ router.post('/signin', authLimiter, async (req, res, next) => {
   try {
     const data = SignInRequestSchema.parse(req.body)
     const result = await authService.signIn(data)
-    
+
     res.json({
       success: true,
       data: result,
@@ -60,7 +60,7 @@ router.post('/refresh', async (req, res, next) => {
   try {
     const data = RefreshTokenRequestSchema.parse(req.body)
     const result = await authService.refreshToken(data.refreshToken)
-    
+
     res.json({
       success: true,
       data: result,
@@ -77,10 +77,10 @@ router.post('/signout', authenticateToken, async (req, res, next) => {
     if (!req.user) {
       throw new AppError('Unauthorized', 401)
     }
-    
+
     const refreshToken = req.body.refreshToken
     await authService.signOut(req.user.id, refreshToken)
-    
+
     res.json({
       success: true,
       data: { message: 'Signed out successfully' },
@@ -97,7 +97,7 @@ router.get('/me', authenticateToken, async (req, res, next) => {
     if (!req.user) {
       throw new AppError('Unauthorized', 401)
     }
-    
+
     res.json({
       success: true,
       data: {
@@ -116,10 +116,10 @@ router.patch('/me', authenticateToken, async (req, res, next) => {
     if (!req.user) {
       throw new AppError('Unauthorized', 401)
     }
-    
+
     const data = UserUpdateRequestSchema.parse(req.body)
     await authService.updateUser(req.user.id, data)
-    
+
     res.json({
       success: true,
       data: { message: 'Profile updated successfully' },
@@ -136,14 +136,10 @@ router.post('/change-password', authenticateToken, authLimiter, async (req, res,
     if (!req.user) {
       throw new AppError('Unauthorized', 401)
     }
-    
+
     const data = ChangePasswordRequestSchema.parse(req.body)
-    await authService.changePassword(
-      req.user.id, 
-      data.currentPassword, 
-      data.newPassword
-    )
-    
+    await authService.changePassword(req.user.id, data.currentPassword, data.newPassword)
+
     res.json({
       success: true,
       data: { message: 'Password changed successfully' },

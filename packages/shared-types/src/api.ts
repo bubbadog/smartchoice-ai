@@ -1,4 +1,5 @@
 import { z } from 'zod'
+
 import { EnhancedProductSchema } from './product'
 
 // Pagination
@@ -35,10 +36,12 @@ export type ApiResponse<T> = {
 export const PaginatedResponseSchema = <T extends z.ZodTypeAny>(itemSchema: T) =>
   z.object({
     success: z.boolean(),
-    data: z.object({
-      items: z.array(itemSchema),
-      pagination: PaginationSchema,
-    }).optional(),
+    data: z
+      .object({
+        items: z.array(itemSchema),
+        pagination: PaginationSchema,
+      })
+      .optional(),
     error: z.string().optional(),
     message: z.string().optional(),
     timestamp: z.string().datetime(),
@@ -58,17 +61,21 @@ export type PaginatedResponse<T> = {
 // Search Request
 export const SearchRequestSchema = z.object({
   query: z.string().min(1),
-  filters: z.object({
-    category: z.string().optional(),
-    minPrice: z.number().positive().optional(),
-    maxPrice: z.number().positive().optional(),
-    brand: z.string().optional(),
-    rating: z.number().min(0).max(5).optional(),
-  }).optional(),
-  pagination: z.object({
-    page: z.number().min(1).default(1),
-    limit: z.number().min(1).max(100).default(20),
-  }).optional(),
+  filters: z
+    .object({
+      category: z.string().optional(),
+      minPrice: z.number().positive().optional(),
+      maxPrice: z.number().positive().optional(),
+      brand: z.string().optional(),
+      rating: z.number().min(0).max(5).optional(),
+    })
+    .optional(),
+  pagination: z
+    .object({
+      page: z.number().min(1).default(1),
+      limit: z.number().min(1).max(100).default(20),
+    })
+    .optional(),
   sortBy: z.enum(['relevance', 'price_low', 'price_high', 'rating', 'newest']).default('relevance'),
 })
 
@@ -84,11 +91,13 @@ export const HealthCheckResponseSchema = ApiResponseSchema(
     status: z.enum(['healthy', 'degraded', 'unhealthy']),
     version: z.string(),
     uptime: z.number(),
-    services: z.record(z.object({
-      status: z.enum(['up', 'down']),
-      responseTime: z.number().optional(),
-    })),
-  })
+    services: z.record(
+      z.object({
+        status: z.enum(['up', 'down']),
+        responseTime: z.number().optional(),
+      }),
+    ),
+  }),
 )
 
 export type HealthCheckResponse = ApiResponse<z.infer<typeof HealthCheckResponseSchema>['data']>

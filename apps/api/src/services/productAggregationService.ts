@@ -1,8 +1,9 @@
 import type { EnhancedProduct, SearchRequest } from '@smartchoice-ai/shared-types'
 
+import { searchMockProducts } from '../data/mockProducts'
+
 import { AmazonApiService } from './amazonApiService'
 import { BestBuyApiService } from './bestBuyApiService'
-import { searchMockProducts } from '../data/mockProducts'
 
 export interface AggregationOptions {
   sources?: ('amazon' | 'bestbuy' | 'mock')[]
@@ -22,13 +23,13 @@ export class ProductAggregationService {
 
   async aggregateSearchResults(
     searchRequest: SearchRequest,
-    options: AggregationOptions = {}
+    options: AggregationOptions = {},
   ): Promise<EnhancedProduct[]> {
     const {
       sources = ['amazon', 'bestbuy', 'mock'],
       maxResultsPerSource = 10,
       enableDeduplication = true,
-      sortBy = 'relevance'
+      sortBy = 'relevance',
     } = options
 
     console.log(`🔍 Aggregating search results for: "${searchRequest.query}"`)
@@ -40,37 +41,43 @@ export class ProductAggregationService {
     // Amazon search
     if (sources.includes('amazon')) {
       console.log('🔍 Starting Amazon search...')
-      const amazonPromise = this.amazonService.searchProducts({
-        keywords: searchRequest.query,
-        itemCount: maxResultsPerSource,
-        brand: searchRequest.filters?.brand,
-        minPrice: searchRequest.filters?.minPrice,
-        maxPrice: searchRequest.filters?.maxPrice,
-      }).then(results => {
-        console.log(`📦 Amazon returned ${results.length} results`)
-        return results
-      }).catch(error => {
-        console.error('❌ Amazon search failed:', error)
-        return []
-      })
+      const amazonPromise = this.amazonService
+        .searchProducts({
+          keywords: searchRequest.query,
+          itemCount: maxResultsPerSource,
+          brand: searchRequest.filters?.brand,
+          minPrice: searchRequest.filters?.minPrice,
+          maxPrice: searchRequest.filters?.maxPrice,
+        })
+        .then((results) => {
+          console.log(`📦 Amazon returned ${results.length} results`)
+          return results
+        })
+        .catch((error) => {
+          console.error('❌ Amazon search failed:', error)
+          return []
+        })
       searchPromises.push(amazonPromise)
     }
 
-    // Best Buy search  
+    // Best Buy search
     if (sources.includes('bestbuy')) {
       console.log('🔍 Starting Best Buy search...')
-      const bestBuyPromise = this.bestBuyService.searchProducts({
-        query: searchRequest.query,
-        pageSize: maxResultsPerSource,
-        minPrice: searchRequest.filters?.minPrice,
-        maxPrice: searchRequest.filters?.maxPrice,
-      }).then(results => {
-        console.log(`📦 Best Buy returned ${results.length} results`)
-        return results
-      }).catch(error => {
-        console.error('❌ Best Buy search failed:', error)
-        return []
-      })
+      const bestBuyPromise = this.bestBuyService
+        .searchProducts({
+          query: searchRequest.query,
+          pageSize: maxResultsPerSource,
+          minPrice: searchRequest.filters?.minPrice,
+          maxPrice: searchRequest.filters?.maxPrice,
+        })
+        .then((results) => {
+          console.log(`📦 Best Buy returned ${results.length} results`)
+          return results
+        })
+        .catch((error) => {
+          console.error('❌ Best Buy search failed:', error)
+          return []
+        })
       searchPromises.push(bestBuyPromise)
     }
 
@@ -85,9 +92,9 @@ export class ProductAggregationService {
 
     // Execute all searches in parallel
     const results = await Promise.all(searchPromises)
-    
+
     // Flatten results
-    results.forEach(sourceResults => {
+    results.forEach((sourceResults) => {
       allResults.push(...sourceResults)
     })
 
@@ -116,7 +123,7 @@ export class ProductAggregationService {
       const asin = productId.replace('amazon-', '')
       return this.amazonService.getProductByAsin(asin)
     }
-    
+
     if (productId.startsWith('bestbuy-')) {
       const sku = productId.replace('bestbuy-', '')
       return this.bestBuyService.getProductBySku(sku)
@@ -124,15 +131,21 @@ export class ProductAggregationService {
 
     // Fallback to mock data
     const mockProducts = searchMockProducts('', 1000)
-    return mockProducts.find(p => p.id === productId) || null
+    return mockProducts.find((p) => p.id === productId) || null
   }
 
-  private applyFilters(products: EnhancedProduct[], filters?: SearchRequest['filters']): EnhancedProduct[] {
+  private applyFilters(
+    products: EnhancedProduct[],
+    filters?: SearchRequest['filters'],
+  ): EnhancedProduct[] {
     if (!filters) return products
 
-    return products.filter(product => {
+    return products.filter((product) => {
       // Category filter
-      if (filters.category && !product.category?.toLowerCase().includes(filters.category.toLowerCase())) {
+      if (
+        filters.category &&
+        !product.category?.toLowerCase().includes(filters.category.toLowerCase())
+      ) {
         return false
       }
 
@@ -160,24 +173,27 @@ export class ProductAggregationService {
 
   private deduplicateProducts(products: EnhancedProduct[]): EnhancedProduct[] {
     const seen = new Map<string, EnhancedProduct>()
-    
+
     for (const product of products) {
       // Create a normalized key for comparison
       const normalizedTitle = this.normalizeTitle(product.title)
       const key = `${normalizedTitle}:${product.brand?.toLowerCase()}`
-      
+
       const existing = seen.get(key)
       if (!existing) {
         seen.set(key, product)
       } else {
         // Keep the product with higher confidence or better deal score
-        if (product.confidence > existing.confidence || 
-            (product.confidence === existing.confidence && (product.dealScore || 0) > (existing.dealScore || 0))) {
+        if (
+          product.confidence > existing.confidence ||
+          (product.confidence === existing.confidence &&
+            (product.dealScore || 0) > (existing.dealScore || 0))
+        ) {
           seen.set(key, product)
         }
       }
     }
-    
+
     return Array.from(seen.values())
   }
 
@@ -189,24 +205,29 @@ export class ProductAggregationService {
       .trim()
   }
 
-  private sortProducts(products: EnhancedProduct[], sortBy: string, query: string): EnhancedProduct[] {
+  private sortProducts(
+    products: EnhancedProduct[],
+    sortBy: string,
+    query: string,
+  ): EnhancedProduct[] {
     return [...products].sort((a, b) => {
       switch (sortBy) {
         case 'price':
           return a.price - b.price
-        
+
         case 'rating':
           return (b.rating || 0) - (a.rating || 0)
-        
+
         case 'deal_score':
           return (b.dealScore || 0) - (a.dealScore || 0)
-        
+
         case 'relevance':
-        default:
+        default: {
           // Calculate relevance score based on multiple factors
           const scoreA = this.calculateRelevanceScore(a, query)
           const scoreB = this.calculateRelevanceScore(b, query)
           return scoreB - scoreA
+        }
       }
     })
   }
@@ -221,7 +242,7 @@ export class ProductAggregationService {
     if (titleLower.includes(queryLower)) {
       score += 100
     }
-    
+
     // Exact title match
     if (titleLower === queryLower) {
       score += 200
@@ -238,7 +259,7 @@ export class ProductAggregationService {
     }
 
     // Features match
-    if (product.features?.some(f => f.toLowerCase().includes(queryLower))) {
+    if (product.features?.some((f) => f.toLowerCase().includes(queryLower))) {
       score += 25
     }
 
@@ -276,7 +297,7 @@ export class ProductAggregationService {
       apiServicesConfigured: {
         amazon: false, // Will be true when real API is configured
         bestBuy: false, // Will be true when real API is configured
-      }
+      },
     }
   }
 }

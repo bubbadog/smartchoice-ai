@@ -1,6 +1,12 @@
+import path from 'path'
+
 import cors from 'cors'
 import { config } from 'dotenv'
-config()
+// Load .env file from the API directory FIRST
+// Use process.cwd() to get the current working directory instead of __dirname
+// This ensures the path works correctly whether running from src or dist
+const envPath = path.join(process.cwd(), '.env')
+config({ path: envPath })
 import express, { json, urlencoded } from 'express'
 import helmet from 'helmet'
 

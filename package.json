@@ -25,7 +25,7 @@
   },
   "devDependencies": {
     "@changesets/cli": "^2.27.1",
-    "eslint": "^8.57.0",
+    "eslint": "^8.57.1",
     "husky": "^8.0.3",
     "lint-staged": "^15.2.0",
     "prettier": "^3.2.5",

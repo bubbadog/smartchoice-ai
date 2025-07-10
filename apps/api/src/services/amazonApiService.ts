@@ -1,4 +1,5 @@
 import crypto from 'crypto'
+
 import type { EnhancedProduct } from '@smartchoice-ai/shared-types'
 
 import { validateEnv } from '../utils/env'
@@ -48,50 +49,48 @@ export class AmazonApiService {
 
   constructor() {
     const env = validateEnv()
-    
+
     // For now, we'll use mock data if credentials aren't available
     this.accessKey = env.AMAZON_ACCESS_KEY || 'mock-access-key'
-    this.secretKey = env.AMAZON_SECRET_KEY || 'mock-secret-key'  
+    this.secretKey = env.AMAZON_SECRET_KEY || 'mock-secret-key'
     this.partnerTag = env.AMAZON_PARTNER_TAG || 'mock-partner-tag'
   }
 
   // Check if real Amazon API is configured
   private isRealApiConfigured(): boolean {
-    return this.accessKey !== 'mock-access-key' && 
-           this.secretKey !== 'mock-secret-key' && 
-           this.partnerTag !== 'mock-partner-tag'
+    return (
+      this.accessKey !== 'mock-access-key' &&
+      this.secretKey !== 'mock-secret-key' &&
+      this.partnerTag !== 'mock-partner-tag'
+    )
   }
 
   // Generate Amazon API signature
   private generateSignature(stringToSign: string): string {
-    return crypto
-      .createHmac('sha256', this.secretKey)
-      .update(stringToSign)
-      .digest('base64')
+    return crypto.createHmac('sha256', this.secretKey).update(stringToSign).digest('base64')
   }
 
   // Create canonical request for Amazon API
-  private createCanonicalRequest(method: string, path: string, queryString: string, headers: Record<string, string>, payload: string): string {
+  private createCanonicalRequest(
+    method: string,
+    path: string,
+    queryString: string,
+    headers: Record<string, string>,
+    payload: string,
+  ): string {
     const canonicalHeaders = Object.keys(headers)
       .sort()
-      .map(key => `${key.toLowerCase()}:${headers[key]}\n`)
+      .map((key) => `${key.toLowerCase()}:${headers[key]}\n`)
       .join('')
-    
+
     const signedHeaders = Object.keys(headers)
       .sort()
-      .map(key => key.toLowerCase())
+      .map((key) => key.toLowerCase())
       .join(';')
 
     const hashedPayload = crypto.createHash('sha256').update(payload).digest('hex')
 
-    return [
-      method,
-      path,
-      queryString,
-      canonicalHeaders,
-      signedHeaders,
-      hashedPayload
-    ].join('\n')
+    return [method, path, queryString, canonicalHeaders, signedHeaders, hashedPayload].join('\n')
   }
 
   // Search for products on Amazon
@@ -198,74 +197,79 @@ export class AmazonApiService {
         cons: ['Requires good WiFi', 'Learning curve'],
         features: ['4K Ultra HD', 'Dolby Vision', 'Alexa Voice Remote'],
         lastUpdated: new Date().toISOString(),
-      }
+      },
     ]
 
     // Filter based on keywords
-    return mockProducts.filter(product => 
-      product.title.toLowerCase().includes(keywords.toLowerCase()) ||
-      product.description.toLowerCase().includes(keywords.toLowerCase()) ||
-      product.features?.some(feature => 
-        feature.toLowerCase().includes(keywords.toLowerCase())
-      )
+    return mockProducts.filter(
+      (product) =>
+        product.title.toLowerCase().includes(keywords.toLowerCase()) ||
+        product.description.toLowerCase().includes(keywords.toLowerCase()) ||
+        product.features?.some((feature) => feature.toLowerCase().includes(keywords.toLowerCase())),
     )
   }
 
   private getMockProductByAsin(asin: string): EnhancedProduct | null {
     const mockProducts = this.getMockAmazonProducts('')
-    return mockProducts.find(p => p.id.includes(asin)) || null
+    return mockProducts.find((p) => p.id.includes(asin)) || null
   }
 
-  private mapAvailability(amazonAvailability?: string): 'in_stock' | 'out_of_stock' | 'limited' | 'preorder' {
+  private mapAvailability(
+    amazonAvailability?: string,
+  ): 'in_stock' | 'out_of_stock' | 'limited' | 'preorder' {
     if (!amazonAvailability) return 'in_stock'
-    
+
     const availability = amazonAvailability.toLowerCase()
     if (availability.includes('in stock')) return 'in_stock'
     if (availability.includes('out of stock')) return 'out_of_stock'
     if (availability.includes('limited')) return 'limited'
     if (availability.includes('preorder')) return 'preorder'
-    
+
     return 'in_stock'
   }
 
   private calculateDealScore(product: AmazonProduct): number {
     // Simple deal score calculation based on rating and availability
     let score = 50 // Base score
-    
+
     if (product.rating) {
       score += (product.rating - 3) * 20 // Boost for high ratings
     }
-    
+
     if (product.reviewCount && product.reviewCount > 1000) {
       score += 10 // Boost for popular items
     }
-    
+
     return Math.min(Math.max(score, 0), 100)
   }
 
   private inferCategory(title: string, features?: string[]): string {
     const text = `${title} ${features?.join(' ') || ''}`.toLowerCase()
-    
+
     if (text.includes('laptop') || text.includes('computer')) return 'Computers'
     if (text.includes('phone') || text.includes('smartphone')) return 'Electronics'
-    if (text.includes('headphone') || text.includes('speaker') || text.includes('audio')) return 'Audio'
-    if (text.includes('tv') || text.includes('television') || text.includes('streaming')) return 'Electronics'
+    if (text.includes('headphone') || text.includes('speaker') || text.includes('audio'))
+      return 'Audio'
+    if (text.includes('tv') || text.includes('television') || text.includes('streaming'))
+      return 'Electronics'
     if (text.includes('book')) return 'Books'
-    if (text.includes('clothing') || text.includes('shirt') || text.includes('pants')) return 'Clothing'
-    
+    if (text.includes('clothing') || text.includes('shirt') || text.includes('pants'))
+      return 'Clothing'
+
     return 'General'
   }
 
   private extractPros(features?: string[]): string[] {
     if (!features) return []
-    
+
     // Extract positive-sounding features as pros
     return features
-      .filter(feature => 
-        feature.toLowerCase().includes('easy') ||
-        feature.toLowerCase().includes('fast') ||
-        feature.toLowerCase().includes('high quality') ||
-        feature.toLowerCase().includes('durable')
+      .filter(
+        (feature) =>
+          feature.toLowerCase().includes('easy') ||
+          feature.toLowerCase().includes('fast') ||
+          feature.toLowerCase().includes('high quality') ||
+          feature.toLowerCase().includes('durable'),
       )
       .slice(0, 3) // Limit to 3 pros
   }

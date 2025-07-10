@@ -1,4 +1,4 @@
-import { z } from 'zod'
+import { type z } from 'zod'
 
 // Generic validation helper
 export function createValidator<T extends z.ZodTypeAny>(schema: T) {
@@ -20,7 +20,7 @@ export class ValidationError extends Error {
   constructor(
     public field: string,
     public message: string,
-    public code: string = 'VALIDATION_ERROR'
+    public code: string = 'VALIDATION_ERROR',
   ) {
     super(`${field}: ${message}`)
     this.name = 'ValidationError'
@@ -33,11 +33,7 @@ export const sanitizeString = (str: string): string => {
 }
 
 export const sanitizeSearchQuery = (query: string): string => {
-  return query
-    .trim()
-    .replace(/[<>]/g, '')
-    .replace(/\s+/g, ' ')
-    .slice(0, 200) // Limit length
+  return query.trim().replace(/[<>]/g, '').replace(/\s+/g, ' ').slice(0, 200) // Limit length
 }
 
 // Common validation patterns
@@ -58,10 +54,10 @@ export type ValidationResult<T> = {
 
 export function validateData<T>(
   data: unknown,
-  validator: ReturnType<typeof createValidator>
+  validator: ReturnType<typeof createValidator>,
 ): ValidationResult<T> {
   const result = validator.safeParse(data)
-  
+
   if (result.success) {
     return {
       success: true,
