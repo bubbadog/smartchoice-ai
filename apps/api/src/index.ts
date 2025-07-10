@@ -9,6 +9,7 @@ import './types/express'
 
 import { errorHandler } from './middleware/errorHandler'
 import { requestLogger } from './middleware/requestLogger'
+import { authRouter } from './routes/auth'
 import { healthRouter } from './routes/health'
 import { productsRouter } from './routes/products'
 import { searchRouter } from './routes/search'
@@ -38,6 +39,7 @@ app.use(requestLogger)
 const apiV1 = express.Router()
 
 // Mount route handlers
+apiV1.use('/auth', authRouter)
 apiV1.use('/health', healthRouter)
 apiV1.use('/search', searchRouter)
 apiV1.use('/products', productsRouter)
