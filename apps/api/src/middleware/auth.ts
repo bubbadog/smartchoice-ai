@@ -7,14 +7,12 @@ import { AppError } from './errorHandler'
 
 const env = validateEnv()
 
-// Extend Express Request type
-declare global {
-  namespace Express {
-    interface Request {
-      user?: {
-        id: string
-        email: string
-      }
+// Extend Express Request type using module augmentation
+declare module 'express-serve-static-core' {
+  interface Request {
+    user?: {
+      id: string
+      email: string
     }
   }
 }

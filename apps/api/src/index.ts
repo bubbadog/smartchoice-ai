@@ -1,6 +1,5 @@
 import { config } from 'dotenv'
 config()
-
 import cors from 'cors'
 import express, { json, urlencoded } from 'express'
 import helmet from 'helmet'
