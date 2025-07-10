@@ -12,6 +12,7 @@ import { requestLogger } from './middleware/requestLogger'
 import { healthRouter } from './routes/health'
 import { productsRouter } from './routes/products'
 import { searchRouter } from './routes/search'
+import { betaRouter } from './routes/beta'
 import { validateEnv } from './utils/env'
 
 const env = validateEnv()
@@ -41,6 +42,7 @@ const apiV1 = express.Router()
 apiV1.use('/health', healthRouter)
 apiV1.use('/search', searchRouter)
 apiV1.use('/products', productsRouter)
+apiV1.use('/beta', betaRouter)
 
 // API versioning
 app.use('/api/v1', apiV1)
